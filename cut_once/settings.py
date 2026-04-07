@@ -28,7 +28,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "mytestsite.urls"
+ROOT_URLCONF = "cut_once.urls"
 
 TEMPLATES = [
     {
@@ -46,7 +46,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "mytestsite.wsgi.application"
+WSGI_APPLICATION = "cut_once.wsgi.application"
 
 DATABASES = {
     "default": {
