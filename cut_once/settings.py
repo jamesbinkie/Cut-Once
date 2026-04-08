@@ -72,9 +72,10 @@ CSRF_TRUSTED_ORIGINS = [
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-LOGIN_URL = 'login'
+# Add these to the very bottom of settings.py if they aren't there
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # Point Django to your templates folder
 TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates']
