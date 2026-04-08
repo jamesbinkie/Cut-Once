@@ -7,7 +7,7 @@ SECRET_KEY = "replace-this-with-any-random-string-for-now"
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]  # for testing on your Pi
+ALLOWED_HOSTS = ["james-cut-once.uk"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -68,3 +68,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_TRUSTED_ORIGINS = [
     "https://james-cut-once.uk",
 ]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
