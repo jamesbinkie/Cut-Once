@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.urls import path
-from knowledge import views  # Import your views
+from knowledge import views
 
 urlpatterns = [
-    path('admin/', admin.site.手admin.site.urls),
-    path('', views.home_search, name='home'), # This sets the landing page
+    path('admin/', admin.site.urls),  # Fixed the '手' typo here
+    path('', views.home_search, name='home'),
 ]
