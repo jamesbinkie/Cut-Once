@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.urls import path
 
 def health_check(request):
-    return HttpResponse("Django on Raspberry Pi is running!")
+    return HttpResponse("Wooo Its working!")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
