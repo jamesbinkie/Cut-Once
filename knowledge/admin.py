@@ -5,12 +5,11 @@ from .models import Article
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
     list_display = ('title', 'owner', 'last_reviewed', 'review_status')
-    list_filter = ('owner', 'last_reviewed')
-    search_fields = ('title', 'content')
-
+    prepopulated_fields = {"slug": ("title",)} # Automatically fills the slug as you type the title
+    
     def review_status(self, obj):
         if obj.needs_review:
-            return format_html('<b style="color: red;">⚠️ NEEDS REVIEW</b>')
-        return format_html('<b style="color: green;">✅ CURRENT</b>')
-    
+            return format_html('<span style="color: red; font-weight: bold;">⚠️ NEEDS REVIEW</span>')
+        return format_html('<span style="color: green; font-weight: bold;">✅ CURRENT</span>')
+
     review_status.short_description = "Status"
