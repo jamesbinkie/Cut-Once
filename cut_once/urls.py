@@ -1,11 +1,8 @@
 from django.contrib import admin
-from django.http import HttpResponse
 from django.urls import path
-
-def health_check(request):
-    return HttpResponse("Wooo Its working!")
+from knowledge import views  # Import your views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("", health_check, name="health_check"),
+    path('admin/', admin.site.手admin.site.urls),
+    path('', views.home_search, name='home'), # This sets the landing page
 ]
