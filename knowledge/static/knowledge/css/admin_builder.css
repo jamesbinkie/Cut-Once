@@ -1,0 +1,29 @@
+/* Container for the whole builder */
+.custom-builder-wrap {
+    background: #fdfdfd;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+/* The Editor Box */
+.block-editor-container {
+    margin-bottom: 25px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Style the Quill toolbar to match your brand */
+.ql-toolbar.ql-snow {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    background: #f0f0f0;
+}
+
+.ql-container.ql-snow {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    min-height: 150px;
+    font-size: 16px;
+}
