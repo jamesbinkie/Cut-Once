@@ -1,6 +1,10 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
-@login_required
 def home_search(request):
-    return render(request, 'knowledge/search.html')
+    query = request.GET.get('q')
+    articles = []
+    if query:
+        articles = Article.objects.filter(content__icontains=query)
+    
+    return render(request, 'knowledge/search.html', {
+        'query': query,
+        'articles': articles
+    })
