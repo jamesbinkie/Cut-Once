@@ -61,11 +61,12 @@ TIME_ZONE = "Europe/London"
 USE_I18N = True
 USE_TZ = True
 
-# --- FIXED STATIC CONFIGURATION ---
+# --- CLEANED STATIC CONFIGURATION ---
 STATIC_URL = "static/"
-# This is where all files are gathered for the web server
+# This is where collectstatic will dump everything
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# Keep this empty to avoid the "directory does not exist" warning
+
+# We leave this empty so Django correctly finds files inside knowledge/static/
 STATICFILES_DIRS = []
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
