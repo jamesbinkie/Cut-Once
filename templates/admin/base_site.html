@@ -10,12 +10,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    /* 1. Remove default system theme toggles */
+    /* 1. Force remove default system theme toggles */
     #header #theme-toggle, .theme-toggle, .header-actions { 
         display: none !important; 
     }
 
-    /* 2. Admin Header Layout - Custom padding and White BG */
+    /* 2. Admin Header Layout - White Background for Light Mode */
     #header {
         display: flex !important;
         justify-content: space-between !important;
@@ -26,7 +26,7 @@
         height: auto !important;
     }
 
-    /* 3. Branding & Typography - Signature Blue */
+    /* 3. Branding & Typography */
     body, #content { 
         font-family: 'Open Sans', sans-serif !important; 
     }
@@ -39,37 +39,43 @@
         font-weight: 800 !important;
         text-transform: uppercase !important;
         background: transparent !important;
+        margin: 0 !important;
     }
 
-    /* 4. Top Right User Links Visibility - Light Mode Fix */
+    /* 4. Top Right User Links Visibility & Layout */
     #user-tools {
-        color: #444 !important; /* Dark text for "Welcome, User" */
+        color: #444 !important; /* Dark text for light mode */
         font-weight: 600 !important;
         padding: 0 !important;
         margin: 0 !important;
-        text-align: right !important;
+        display: flex !important; /* Ensure icons stay in a row */
+        align-items: center !important;
+        font-size: 13px !important;
     }
 
     #user-tools a, 
     #user-tools a:link, 
     #user-tools a:visited {
-        color: #009FE3 !important; /* Brand Blue for links */
+        color: #009FE3 !important;
         text-decoration: underline !important;
     }
 
-    #user-tools a:hover {
-        color: #444 !important;
-    }
-
-    /* 5. Custom Theme Toggle Button */
-    #custom-admin-toggle {
+    /* 5. Custom Button Styles (Cog and Moon) */
+    .custom-admin-btn {
         background: transparent !important;
         border: none !important;
         color: #009FE3 !important;
         cursor: pointer !important;
-        padding: 0 15px !important;
-        font-size: 1.2rem !important;
+        padding: 0 12px !important;
+        font-size: 1.3rem !important;
         transition: transform 0.2s !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        text-decoration: none !important;
+    }
+
+    .custom-admin-btn:hover {
+        transform: scale(1.15);
     }
 
     /* 6. DARK MODE OVERRIDES */
@@ -79,7 +85,7 @@
     }
 
     html.dark #user-tools {
-        color: #f4f4f5 !important; /* Light text for Dark Mode */
+        color: #f4f4f5 !important;
     }
 
     html.dark div.breadcrumbs { 
@@ -87,7 +93,8 @@
         color: #a1a1aa !important; 
     }
 
-    /* Logout Form Styling */
+    /* Form and Text cleanup */
+    #logout-form { display: inline-block !important; margin-left: 5px !important; }
     #logout-form button {
         background: none !important;
         border: none !important;
@@ -100,9 +107,10 @@
 </style>
 
 <script>
+    // Theme Toggling Logic
     function toggleAdminTheme() {
         const isDark = document.documentElement.classList.toggle('dark');
-        const icon = document.querySelector('#custom-admin-toggle i');
+        const icon = document.querySelector('#theme-toggle-btn i');
         
         if (isDark) {
             localStorage.setItem('color-theme', 'dark');
@@ -115,9 +123,10 @@
         }
     }
 
+    // Initial load sync
     function initTheme() {
         const theme = localStorage.getItem('color-theme');
-        const icon = document.querySelector('#custom-admin-toggle i');
+        const icon = document.querySelector('#theme-toggle-btn i');
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
             document.documentElement.setAttribute('data-theme', 'dark');
@@ -137,9 +146,15 @@
 {% endblock %}
 
 {% block userlinks %}
-    <button id="custom-admin-toggle" onclick="toggleAdminTheme()" title="Toggle Dark/Light Mode">
+    <a href="{% url 'home' %}" class="custom-admin-btn" title="Back to Knowledge Base">
+        <i class="fa-solid fa-gears"></i>
+    </a>
+
+    <button id="theme-toggle-btn" class="custom-admin-btn" onclick="toggleAdminTheme()" title="Toggle Dark/Light Mode">
         <i class="fa-solid fa-moon"></i>
     </button>
+    
+    <span style="margin: 0 10px; opacity: 0.2; font-weight: 300;">|</span>
     
     {% if user.is_active and user.is_staff %}
         {% url 'django-admindocs-docroot' as docsroot %}
@@ -152,7 +167,7 @@
         <a href="{% url 'admin:password_change' %}">{% translate 'Change password' %}</a> /
     {% endif %}
     
-    <form action="{% url 'admin:logout' %}" method="post" id="logout-form" style="display:inline;">
+    <form action="{% url 'admin:logout' %}" method="post" id="logout-form">
         {% csrf_token %}
         <button type="submit">
             {% translate 'Log out' %}
