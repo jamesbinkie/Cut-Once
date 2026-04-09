@@ -35,7 +35,8 @@ ROOT_URLCONF = "cut_once.urls"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # <--- Make sure this looks exactly like this
+        # This line is critical—it tells Django to check your custom 'templates' folder first
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
