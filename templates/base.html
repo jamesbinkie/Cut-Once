@@ -1,42 +1,48 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="main-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cut-Once</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <script>
-        // On page load, apply the correct theme immediately
+        // Use Tailwind configuration to enable class-based dark mode
+        tailwind.config = {
+          darkMode: 'class',
+        }
+
+        // Apply theme immediately to prevent flashing
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
     </script>
+
+    <style>
+        /* Fallback: If Tailwind fails, these will force the colors */
+        .dark body { background-color: #18181b !important; color: #f4f4f5 !important; }
+        .dark input { background-color: #27272a !important; color: white !important; border-color: #3f3f46 !important; }
+    </style>
 </head>
 <body class="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 font-sans antialiased transition-colors duration-300">
 
-    <nav class="flex justify-between items-center p-6">
+    <nav class="flex justify-between items-center p-6 bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700">
         <div class="text-xl font-black tracking-tighter text-indigo-600 dark:text-indigo-400">CUT-ONCE.</div>
         
         <div class="flex items-center space-x-4">
-            {% if user.is_authenticated %}
-                {% if user.is_staff %}
-                    <a href="/admin" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-                        <i class="fa-solid fa-gears text-xl"></i>
-                    </a>
-                {% endif %}
-            {% endif %}
-
-            <button id="theme-toggle" class="text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors">
-                <i id="theme-toggle-dark-icon" class="fa-solid fa-moon text-xl"></i>
-                <i id="theme-toggle-light-icon" class="fa-solid fa-sun text-xl hidden"></i>
+            <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2.5">
+                <i id="theme-toggle-icon" class="fa-solid fa-moon text-xl"></i>
             </button>
 
             {% if user.is_authenticated %}
                 <span class="text-sm text-gray-400">|</span>
+                {% if user.is_staff %}
+                    <a href="/admin" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400"><i class="fa-solid fa-gears text-xl"></i></a>
+                {% endif %}
                 <form action="{% url 'logout' %}" method="post" class="inline">
                     {% csrf_token %}
                     <button type="submit" class="text-sm font-medium hover:underline">Logout</button>
@@ -48,13 +54,11 @@
     <main class="max-w-4xl mx-auto px-6">
         <div class="py-12 text-center">
             <h1 class="text-4xl font-bold mb-4">How can I help you today?</h1>
-            <p class="text-gray-600 dark:text-gray-400 mb-8">Ask a question and I'll search our internal documents for an answer.</p>
+            <p class="text-gray-600 dark:text-gray-400 mb-8 text-lg">Ask a question and I'll search our internal documents for an answer.</p>
             
             <form method="GET" action="/search" class="relative max-w-2xl mx-auto">
-                <input type="text" 
-                       name="q"
-                       placeholder="e.g. How do I setup the printer?" 
-                       class="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm transition-all text-gray-900 dark:text-white">
+                <input type="text" name="q" placeholder="Ask a question..." 
+                       class="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none shadow-lg transition-all">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-5 text-gray-400"></i>
             </form>
         </div>
@@ -64,35 +68,28 @@
 
     <script>
         const themeToggleBtn = document.getElementById('theme-toggle');
-        const darkIcon = document.getElementById('theme-toggle-dark-icon');
-        const lightIcon = document.getElementById('theme-toggle-light-icon');
+        const themeIcon = document.getElementById('theme-toggle-icon');
 
-        // Function to set the correct icon on load
-        function setInitialIcon() {
+        // Initial icon setup
+        function updateIcon() {
             if (document.documentElement.classList.contains('dark')) {
-                lightIcon.classList.remove('hidden');
-                darkIcon.classList.add('hidden');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
             } else {
-                darkIcon.classList.remove('hidden');
-                lightIcon.classList.add('hidden');
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
             }
         }
-        setInitialIcon();
+        updateIcon();
 
         themeToggleBtn.addEventListener('click', function() {
-            // Toggle the 'dark' class on <html>
-            document.documentElement.classList.toggle('dark');
-            
-            // Sync the icons
-            darkIcon.classList.toggle('hidden');
-            lightIcon.classList.toggle('hidden');
-
-            // Save preference to LocalStorage
+            // Toggle the dark class
             if (document.documentElement.classList.contains('dark')) {
-                localStorage.setItem('color-theme', 'dark');
-            } else {
+                document.documentElement.classList.remove('dark');
                 localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
             }
+            updateIcon();
         });
     </script>
 </body>
