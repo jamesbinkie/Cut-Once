@@ -4,9 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "replace-this-with-any-random-string-for-now"
-
 DEBUG = True
-
 ALLOWED_HOSTS = ["james-cut-once.uk"]
 
 INSTALLED_APPS = [
@@ -63,23 +61,15 @@ TIME_ZONE = "Europe/London"
 USE_I18N = True
 USE_TZ = True
 
-# --- STATIC FILES CONFIGURATION ---
+# --- FIXED STATIC CONFIGURATION ---
 STATIC_URL = "static/"
-
-# This is the directory where collectstatic will collect all static files for deployment
+# This is where all files are gathered for the web server
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Ensure the /home/james/myproject/static directory exists to avoid the W004 warning
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+# Keep this empty to avoid the "directory does not exist" warning
+STATICFILES_DIRS = []
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://james-cut-once.uk",
-]
-
+CSRF_TRUSTED_ORIGINS = ["https://james-cut-once.uk"]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 LOGIN_URL = '/accounts/login/'
