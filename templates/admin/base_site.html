@@ -9,10 +9,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    /* 1. Remove System Toggles */
-    #header #theme-toggle { display: none !important; }
+    /* 1. Kill any system theme switches that try to pop up */
+    #header #theme-toggle, .theme-toggle { display: none !important; }
 
-    /* 2. Admin Header Layout Fixes */
+    /* 2. Admin Header Layout */
     #header {
         display: flex !important;
         justify-content: space-between !important;
@@ -22,13 +22,7 @@
         border-bottom: 1px solid #eee !important;
     }
 
-    #user-tools {
-        display: flex !important;
-        align-items: center !important;
-        margin: 0 !important;
-    }
-
-    /* 3. The New Manual Toggle Button Style */
+    /* 3. Our Working Toggle Style */
     #custom-admin-toggle {
         background: transparent;
         border: none;
@@ -38,19 +32,20 @@
         font-size: 1.2rem;
         transition: transform 0.2s;
     }
-    #custom-admin-toggle:hover { transform: scale(1.1); }
 
     /* 4. Branding & Typography */
     body, #content { font-family: 'Open Sans', sans-serif !important; }
     #branding h1, #branding h1 a { color: #009FE3 !important; font-weight: 800 !important; }
 
-    /* 5. DARK MODE OVERRIDES */
+    /* 5. DARK MODE FORCED (When .dark is present) */
     html.dark #header {
         background: #18181b !important;
         border-bottom: 1px solid #3f3f46 !important;
     }
-    html.dark #custom-admin-toggle { color: #009FE3; }
     html.dark div.breadcrumbs { background: #27272a !important; color: #a1a1aa !important; }
+    
+    /* Ensure only one toggle is visible by specifically hiding the default wrapper if it exists */
+    .header-actions { display: none !important; }
 </style>
 
 <script>
@@ -70,20 +65,22 @@
     }
 
     // Sync state on load
-    document.addEventListener('DOMContentLoaded', function() {
+    function initTheme() {
         const theme = localStorage.getItem('color-theme');
         const icon = document.querySelector('#custom-admin-toggle i');
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
             document.documentElement.setAttribute('data-theme', 'dark');
-            icon.classList.replace('fa-moon', 'fa-sun');
+            if(icon) icon.classList.replace('fa-moon', 'fa-sun');
         }
-    });
+    }
+    initTheme();
+    document.addEventListener('DOMContentLoaded', initTheme);
 </script>
 {% endblock %}
 
 {% block branding %}
-<div id="branding" style="display: flex; align-items: center;">
+<div id="branding">
     <h1 id="site-name"><a href="{% url 'admin:index' %}">CUT-ONCE. ADMIN</a></h1>
 </div>
 {% endblock %}
@@ -92,5 +89,22 @@
     <button id="custom-admin-toggle" onclick="toggleAdminTheme()" title="Toggle Dark/Light Mode">
         <i class="fa-solid fa-moon"></i>
     </button>
-    {{ block.super }}
+    
+    {% if user.is_active and user.is_staff %}
+        {% url 'django-admindocs-docroot' as docsroot %}
+        {% if docsroot %}
+            <a href="{{ docsroot }}">{% translate 'Documentation' %}</a> /
+        {% endif %}
+    {% endif %}
+    
+    {% if user.has_usable_password %}
+        <a href="{% url 'admin:password_change' %}">{% translate 'Change password' %}</a> /
+    {% endif %}
+    
+    <form action="{% url 'admin:logout' %}" method="post" id="logout-form" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;padding:0;">
+            {% translate 'Log out' %}
+        </button>
+    </form>
 {% endblock %}
