@@ -67,6 +67,11 @@ USE_TZ = True
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Add this line to tell Django to look in app folders for static files
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 CSRF_TRUSTED_ORIGINS = [
     "https://james-cut-once.uk",
 ]
