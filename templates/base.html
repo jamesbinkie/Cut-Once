@@ -99,28 +99,36 @@
     </main>
 
     <script>
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-toggle-icon');
+     const themeToggleBtn = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-toggle-icon');
 
-        function updateIcon() {
-            if (document.documentElement.classList.contains('dark')) {
-                themeIcon.classList.replace('fa-moon', 'fa-sun');
-            } else {
-                themeIcon.classList.replace('fa-sun', 'fa-moon');
-            }
-        }
-        updateIcon();
+function updateUI() {
+    if (document.documentElement.classList.contains('dark')) {
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+    } else {
+        themeIcon.classList.replace('fa-sun', 'fa-moon');
+    }
+}
 
-        themeToggleBtn.addEventListener('click', function() {
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('color-theme', 'light');
-            } else {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('color-theme', 'dark');
-            }
-            updateIcon();
-        });
+// Set initial state based on storage ONLY (no "half-day" system guessing)
+if (localStorage.getItem('color-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+} else {
+    document.documentElement.classList.remove('dark');
+}
+updateUI();
+
+themeToggleBtn.addEventListener('click', function() {
+    // Toggle between ONLY two states
+    if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('color-theme', 'light');
+    } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('color-theme', 'dark');
+    }
+    updateUI();
+});
     </script>
 </body>
 </html>
