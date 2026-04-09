@@ -8,60 +8,57 @@
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    /* 1. Remove the 3-button 'Auto' theme switcher from the admin header */
-    #theme-toggle { display: none !important; }
+    /* 1. HIDE THE THEME TOGGLER (The 3-option menu) */
+    #header #theme-toggle, 
+    .theme-toggle,
+    #header .header-actions .theme-toggle { 
+        display: none !important; 
+    }
 
-    /* 2. Global Typography */
+    /* 2. Global Fonts */
     body, #content { font-family: 'Open Sans', sans-serif !important; }
 
-    /* 3. LIGHT MODE FORCED DEFAULTS */
-    /* We use :not(.dark) to ensure these ONLY apply when dark mode is OFF */
-    html:not(.dark) body, 
-    html:not(.dark) #header,
-    html:not(.dark) .module h2, 
-    html:not(.dark) .module caption {
-        background-color: #ffffff !important;
+    /* 3. LIGHT MODE FORCED (When .dark is NOT present) */
+    :root:not(.dark) #header {
+        background: #ffffff !important;
         color: #009FE3 !important;
-    }
-
-    html:not(.dark) #header {
         border-bottom: 1px solid #eee !important;
     }
-
-    html:not(.dark) div.breadcrumbs {
+    :root:not(.dark) #branding h1, :root:not(.dark) #branding h1 a { 
+        color: #009FE3 !important; 
+    }
+    :root:not(.dark) .module h2, :root:not(.dark) .module caption {
+        background: #009FE3 !important;
+        color: #ffffff !important;
+    }
+    :root:not(.dark) div.breadcrumbs {
         background: #f8f9fa !important;
         color: #666 !important;
     }
 
-    /* 4. DARK MODE FORCED OVERRIDES */
-    html.dark #header {
+    /* 4. DARK MODE FORCED (When .dark IS present) */
+    .dark #header {
         background: #18181b !important;
         border-bottom: 1px solid #3f3f46 !important;
     }
-
-    html.dark .module h2, 
-    html.dark .module caption,
-    html.dark div.breadcrumbs {
+    .dark #branding h1 a { color: #009FE3 !important; }
+    .dark .module h2, .dark .module caption, .dark div.breadcrumbs {
         background: #27272a !important;
         color: #009FE3 !important;
         border: 1px solid #3f3f46 !important;
     }
 
-    /* Branding & Buttons (Always Blue) */
-    #branding h1, #branding h1 a { 
-        color: #009FE3 !important; 
-        font-weight: 800 !important; 
-    }
-
+    /* Buttons always stay Brand Blue */
     .button, input[type=submit] {
         background: #009FE3 !important;
         border: none !important;
+        font-weight: 600 !important;
     }
 </style>
 
 <script>
-    // Force the Admin to follow our Front-end 2-state logic
-    function syncAdminTheme() {
+    // Force the Admin to strictly follow the 2-state logic
+    function syncTheme() {
         const theme = localStorage.getItem('color-theme');
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -71,11 +68,9 @@
             document.documentElement.setAttribute('data-theme', 'light');
         }
     }
-    
-    syncAdminTheme();
-    // Listen for changes if you have two tabs open
-    window.addEventListener('storage', syncAdminTheme);
-    document.addEventListener('DOMContentLoaded', syncAdminTheme);
+    syncTheme();
+    window.addEventListener('storage', syncTheme);
+    document.addEventListener('DOMContentLoaded', syncTheme);
 </script>
 {% endblock %}
 
