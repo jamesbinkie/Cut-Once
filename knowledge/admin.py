@@ -8,10 +8,10 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        # Corrected paths relative to the app's static folder
-        js = ('knowledge/js/page_builder.js?v=docs_final',)
+        # Changed version to v=999 to force immediate update
+        js = ('knowledge/js/page_builder.js?v=999',)
         css = {
-            'all': ('knowledge/css/admin_builder.css?v=docs_final',)
+            'all': ('knowledge/css/admin_builder.css?v=999',)
         }
     
     def review_status(self, obj):
