@@ -3,14 +3,8 @@
 {% block content %}
 <article class="mt-8">
     <h1 class="text-4xl font-extrabold text-brand mb-8">{{ article.title }}</h1>
-
     <div class="prose prose-lg dark:prose-invert max-w-none text-gray-800 dark:text-zinc-200">
         {{ article.content|safe }}
-    </div>
-
-    <div class="mt-12 pt-6 border-t border-gray-200 dark:border-zinc-700 text-sm text-gray-500 flex justify-between">
-        <span>Owner: {{ article.owner }}</span>
-        <span>Last reviewed: {{ article.last_reviewed }}</span>
     </div>
 </article>
 {% endblock %}
