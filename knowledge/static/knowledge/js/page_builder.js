@@ -1,5 +1,5 @@
 (function() {
-    // 1. Inject Quill.js resources directly into the head
+    // 1. Inject Quill.js resources directly
     const qCss = document.createElement('link');
     qCss.rel = 'stylesheet'; 
     qCss.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
@@ -10,46 +10,50 @@
     document.head.appendChild(qJs);
 
     function startEditor() {
-        // Target the 'content' field shown in your HTML file
-        const targetField = document.querySelector('textarea[name="content"]');
-        if (!targetField) return;
+        // Critical: Look for the textarea specifically by ID and Name
+        const targetField = document.getElementById('id_content') || document.querySelector('textarea[name="content"]');
+        if (!targetField) {
+            console.error("Editor Error: Could not find the 'content' field.");
+            return;
+        }
 
-        // Hide standard box and create editor surface
+        // Hide the standard box
         targetField.style.display = 'none';
+
+        // Create the editor container
         const container = document.createElement('div');
-        // Styling the container for a clean "Doc" look
-        container.style = "background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px;";
+        container.style = "background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; color: black !important;";
         container.innerHTML = `<div id="google-doc-editor" style="height: 500px; font-size: 16px;">${targetField.value}</div>`;
         targetField.parentNode.insertBefore(container, targetField);
 
-        // Professional formatting toolbar configuration (Google Docs style)
+        // Initialize Quill
         const quill = new Quill('#google-doc-editor', {
             theme: 'snow',
             modules: {
                 toolbar: [
                     [{ 'header': [1, 2, 3, false] }],
                     ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }], // Text & Highlight colors
+                    [{ 'color': [] }, { 'background': [] }],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                     [{ 'align': [] }],
                     ['link', 'image', 'video'],
-                    ['clean'] // Button to remove formatting
+                    ['clean']
                 ]
             }
         });
 
-        // Keep the hidden Django field in sync for saving
+        // Sync contents for saving
         quill.on('text-change', () => {
             targetField.value = quill.root.innerHTML;
         });
     }
 
-    // Wait for the library to load, then fire the editor
+    // Force wait for Quill to load and the DOM to be ready
     qJs.onload = () => {
-        if (document.readyState === 'complete') { 
-            startEditor(); 
-        } else { 
-            window.addEventListener('load', startEditor); 
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startEditor);
+        } else {
+            startEditor();
         }
     };
 })();
