@@ -8,10 +8,10 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        # v=force-v3 ensures your browser ignores the old broken scripts
-        js = ('knowledge/static/knowledge/js/page_builder.js?v=force-v3',)
+        # We use the full path relative to the STATIC_URL
+        js = ('knowledge/js/page_builder.js?v=99',)
         css = {
-            'all': ('knowledge/static/knowledge/css/admin_builder.css?v=force-v3',)
+            'all': ('knowledge/css/admin_builder.css?v=99',)
         }
     
     def review_status(self, obj):
