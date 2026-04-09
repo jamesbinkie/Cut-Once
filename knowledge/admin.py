@@ -8,9 +8,10 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        js = ('knowledge/js/page_builder.js?v=final-docs',)
+        # v=force-v3 ensures your browser ignores the old broken scripts
+        js = ('knowledge/js/page_builder.js?v=force-v3',)
         css = {
-            'all': ('knowledge/css/admin_builder.css?v=final-docs',)
+            'all': ('knowledge/css/admin_builder.css?v=force-v3',)
         }
     
     def review_status(self, obj):
