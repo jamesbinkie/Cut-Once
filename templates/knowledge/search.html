@@ -1,23 +1,46 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="flex flex-col items-center justify-center min-h-[70vh] px-4">
-    <h1 class="text-5xl font-extrabold mb-8 text-gray-800">What do you want to learn?</h1>
-    
-    <form action="/search" method="GET" class="w-full max-w-2xl">
-        <div class="relative group">
-            <input type="text" name="q" 
-                   placeholder="Describe your question..." 
-                   class="w-full px-6 py-4 text-lg rounded-full border border-gray-200 shadow-sm focus:shadow-md focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100 outline-none transition-all pl-14">
-            <div class="absolute left-5 top-4 text-gray-400 group-focus-within:text-indigo-500">
-                <i class="fa-solid fa-magnifying-glass text-xl"></i>
-            </div>
+<div class="mt-8">
+    {% if query %}
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-zinc-200">
+            Results for "{{ query }}"
+        </h2>
+
+        <div class="grid gap-6">
+            {% for article in articles %}
+                <div class="p-6 bg-white dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 class="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                        <a href="{% url 'article_detail' article.slug %}" class="hover:underline">
+                            {{ article.title }}
+                        </a>
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-2">
+                        {{ article.content|truncatewords:30 }}
+                    </p>
+                    <div class="mt-4 flex justify-between items-center text-xs text-gray-400">
+                        <span>Owner: {{ article.owner }}</span>
+                        <span>Last reviewed: {{ article.last_reviewed }}</span>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-12 bg-gray-100 dark:bg-zinc-800/50 rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-700">
+                    <i class="fa-solid fa-face-frown text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-600 dark:text-gray-400 text-lg">
+                        I couldn't find an answer for that.
+                    </p>
+                    <p class="text-sm text-gray-500 mt-2">
+                        A ticket has been created for the admin to review this question.
+                    </p>
+                </div>
+            {% endfor %}
         </div>
-        <div class="mt-8 flex justify-center space-x-4">
-            <button type="submit" class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition">
-                Search Knowledge
-            </button>
+    {% else %}
+        <div class="text-center py-20">
+            <p class="text-gray-500 dark:text-zinc-500 italic">
+                Type a question above to begin searching our internal documentation.
+            </p>
         </div>
-    </form>
+    {% endif %}
 </div>
 {% endblock %}
