@@ -1,0 +1,61 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | Cut-Once Admin{% endblock %}
+
+{% block extrastyle %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    /* Applying Cut-Once Branding to Admin */
+    body, #content { 
+        font-family: 'Open Sans', sans-serif !important; 
+    }
+
+    /* The Header Bar */
+    #header {
+        background: #ffffff !important;
+        color: #009FE3 !important;
+        border-bottom: 1px solid #eee !important;
+        padding: 15px 40px !important;
+    }
+
+    /* Branding Text */
+    #branding h1 {
+        font-family: 'Open Sans', sans-serif !important;
+        font-weight: 800 !important;
+        letter-spacing: -1px !important;
+        color: #009FE3 !important;
+        font-size: 20px !important;
+    }
+
+    /* Sidebar and Buttons */
+    .module h2, .module caption, .inline-group h2 {
+        background: #009FE3 !important;
+    }
+
+    div.breadcrumbs {
+        background: #f8f9fa !important;
+        color: #666 !important;
+        border-bottom: 1px solid #eee !important;
+    }
+
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: #009FE3 !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+
+    /* Sidebar Links */
+    #content-main { font-weight: 400; }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" style="color: #009FE3;">CUT-ONCE. ADMIN</a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
