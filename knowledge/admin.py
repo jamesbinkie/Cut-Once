@@ -4,11 +4,12 @@ from .models import Article
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
+    # 'review_status' added to show your 6-month tracking
     list_display = ('title', 'owner', 'last_reviewed', 'review_status')
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        # v=docs forces the browser to refresh the script cache
+        # Added ?v=docs to force the browser to refresh your JavaScript cache
         js = ('knowledge/js/page_builder.js?v=docs',)
         css = {
             'all': ('knowledge/css/admin_builder.css?v=docs',)
