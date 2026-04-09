@@ -9,43 +9,31 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    /* 1. Kill any system theme switches that try to pop up */
-    #header #theme-toggle, .theme-toggle { display: none !important; }
+    /* ... your existing styles ... */
 
-    /* 2. Admin Header Layout */
-    #header {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 10px 40px !important;
-        background: #ffffff !important;
-        border-bottom: 1px solid #eee !important;
+    /* 6. Fix Top Right User Links Visibility */
+    #user-tools {
+        color: #444 !important; /* Dark grey for readability in Light Mode */
     }
 
-    /* 3. Our Working Toggle Style */
-    #custom-admin-toggle {
-        background: transparent;
-        border: none;
-        color: #009FE3;
-        cursor: pointer;
-        padding: 0 15px;
-        font-size: 1.2rem;
-        transition: transform 0.2s;
+    #user-tools a {
+        color: #009FE3 !important; /* Use your brand blue for links */
     }
 
-    /* 4. Branding & Typography */
-    body, #content { font-family: 'Open Sans', sans-serif !important; }
-    #branding h1, #branding h1 a { color: #009FE3 !important; font-weight: 800 !important; }
-
-    /* 5. DARK MODE FORCED (When .dark is present) */
-    html.dark #header {
-        background: #18181b !important;
-        border-bottom: 1px solid #3f3f46 !important;
+    /* Adjust for Dark Mode */
+    html.dark #user-tools {
+        color: #a1a1aa !important; /* Light grey for Dark Mode */
     }
-    html.dark div.breadcrumbs { background: #27272a !important; color: #a1a1aa !important; }
     
-    /* Ensure only one toggle is visible by specifically hiding the default wrapper if it exists */
-    .header-actions { display: none !important; }
+    html.dark #user-tools a {
+        color: #009FE3 !important;
+    }
+
+    /* Your existing button style */
+    #custom-admin-toggle {
+        /* ... existing properties ... */
+        color: #009FE3; 
+    }
 </style>
 
 <script>
