@@ -9,9 +9,9 @@ class ArticleAdmin(admin.ModelAdmin):
 
     class Media:
         # v=force-v3 ensures your browser ignores the old broken scripts
-        js = ('knowledge/js/page_builder.js?v=force-v3',)
+        js = ('knowledge/static/knowledge/js/page_builder.js?v=force-v3',)
         css = {
-            'all': ('knowledge/css/admin_builder.css?v=force-v3',)
+            'all': ('knowledge/static/knowledge/css/admin_builder.css?v=force-v3',)
         }
     
     def review_status(self, obj):
