@@ -6,76 +6,91 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    /* 1. HIDE THE THEME TOGGLER (The 3-option menu) */
-    #header #theme-toggle, 
-    .theme-toggle,
-    #header .header-actions .theme-toggle { 
-        display: none !important; 
-    }
+    /* 1. Remove System Toggles */
+    #header #theme-toggle { display: none !important; }
 
-    /* 2. Global Fonts */
-    body, #content { font-family: 'Open Sans', sans-serif !important; }
-
-    /* 3. LIGHT MODE FORCED (When .dark is NOT present) */
-    :root:not(.dark) #header {
+    /* 2. Admin Header Layout Fixes */
+    #header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 10px 40px !important;
         background: #ffffff !important;
-        color: #009FE3 !important;
         border-bottom: 1px solid #eee !important;
     }
-    :root:not(.dark) #branding h1, :root:not(.dark) #branding h1 a { 
-        color: #009FE3 !important; 
-    }
-    :root:not(.dark) .module h2, :root:not(.dark) .module caption {
-        background: #009FE3 !important;
-        color: #ffffff !important;
-    }
-    :root:not(.dark) div.breadcrumbs {
-        background: #f8f9fa !important;
-        color: #666 !important;
+
+    #user-tools {
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 !important;
     }
 
-    /* 4. DARK MODE FORCED (When .dark IS present) */
-    .dark #header {
+    /* 3. The New Manual Toggle Button Style */
+    #custom-admin-toggle {
+        background: transparent;
+        border: none;
+        color: #009FE3;
+        cursor: pointer;
+        padding: 0 15px;
+        font-size: 1.2rem;
+        transition: transform 0.2s;
+    }
+    #custom-admin-toggle:hover { transform: scale(1.1); }
+
+    /* 4. Branding & Typography */
+    body, #content { font-family: 'Open Sans', sans-serif !important; }
+    #branding h1, #branding h1 a { color: #009FE3 !important; font-weight: 800 !important; }
+
+    /* 5. DARK MODE OVERRIDES */
+    html.dark #header {
         background: #18181b !important;
         border-bottom: 1px solid #3f3f46 !important;
     }
-    .dark #branding h1 a { color: #009FE3 !important; }
-    .dark .module h2, .dark .module caption, .dark div.breadcrumbs {
-        background: #27272a !important;
-        color: #009FE3 !important;
-        border: 1px solid #3f3f46 !important;
-    }
-
-    /* Buttons always stay Brand Blue */
-    .button, input[type=submit] {
-        background: #009FE3 !important;
-        border: none !important;
-        font-weight: 600 !important;
-    }
+    html.dark #custom-admin-toggle { color: #009FE3; }
+    html.dark div.breadcrumbs { background: #27272a !important; color: #a1a1aa !important; }
 </style>
 
 <script>
-    // Force the Admin to strictly follow the 2-state logic
-    function syncTheme() {
-        const theme = localStorage.getItem('color-theme');
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
+    function toggleAdminTheme() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        const icon = document.querySelector('#custom-admin-toggle i');
+        
+        if (isDark) {
+            localStorage.setItem('color-theme', 'dark');
+            icon.classList.replace('fa-moon', 'fa-sun');
             document.documentElement.setAttribute('data-theme', 'dark');
         } else {
-            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+            icon.classList.replace('fa-sun', 'fa-moon');
             document.documentElement.setAttribute('data-theme', 'light');
         }
     }
-    syncTheme();
-    window.addEventListener('storage', syncTheme);
-    document.addEventListener('DOMContentLoaded', syncTheme);
+
+    // Sync state on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const theme = localStorage.getItem('color-theme');
+        const icon = document.querySelector('#custom-admin-toggle i');
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute('data-theme', 'dark');
+            icon.classList.replace('fa-moon', 'fa-sun');
+        }
+    });
 </script>
 {% endblock %}
 
 {% block branding %}
-<h1 id="site-name">
-    <a href="{% url 'admin:index' %}">CUT-ONCE. ADMIN</a>
-</h1>
+<div id="branding" style="display: flex; align-items: center;">
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">CUT-ONCE. ADMIN</a></h1>
+</div>
+{% endblock %}
+
+{% block userlinks %}
+    <button id="custom-admin-toggle" onclick="toggleAdminTheme()" title="Toggle Dark/Light Mode">
+        <i class="fa-solid fa-moon"></i>
+    </button>
+    {{ block.super }}
 {% endblock %}
