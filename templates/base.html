@@ -5,13 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cut-Once</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script>
-        // Use Tailwind configuration to enable class-based dark mode
+        // 2. Configure Tailwind with Brand Identity
         tailwind.config = {
           darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                brand: '#009FE3', // Your signature blue
+              },
+              fontFamily: {
+                sans: ['"Open Sans"', 'sans-serif'],
+              }
+            }
+          }
         }
 
         // Apply theme immediately to prevent flashing
@@ -23,15 +38,30 @@
     </script>
 
     <style>
-        /* Fallback: If Tailwind fails, these will force the colors */
+        /* 3. Global Typography Rules */
+        body { 
+            font-family: 'Open Sans', sans-serif; 
+            font-weight: 400; /* Regular */
+        }
+        
+        h1 { font-weight: 800 !important; } /* Extra Bold for main titles */
+        h2, h3 { font-weight: 700 !important; } /* Bold for subheadings */
+        
+        /* Semibold for important highlights */
+        strong, .font-semibold { font-weight: 600 !important; } 
+
+        /* Fallback Colors */
         .dark body { background-color: #18181b !important; color: #f4f4f5 !important; }
         .dark input { background-color: #27272a !important; color: white !important; border-color: #3f3f46 !important; }
+        
+        /* Apply brand color to selection/highlights */
+        ::selection { background-color: #009FE3; color: white; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 font-sans antialiased transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 antialiased transition-colors duration-300">
 
     <nav class="flex justify-between items-center p-6 bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700">
-        <div class="text-xl font-black tracking-tighter text-indigo-600 dark:text-indigo-400">CUT-ONCE.</div>
+        <div class="text-xl font-extrabold tracking-tighter text-brand">CUT-ONCE.</div>
         
         <div class="flex items-center space-x-4">
             <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2.5">
@@ -41,7 +71,9 @@
             {% if user.is_authenticated %}
                 <span class="text-sm text-gray-400">|</span>
                 {% if user.is_staff %}
-                    <a href="/admin" class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400"><i class="fa-solid fa-gears text-xl"></i></a>
+                    <a href="/admin" class="text-brand hover:opacity-80 transition-opacity">
+                        <i class="fa-solid fa-gears text-xl"></i>
+                    </a>
                 {% endif %}
                 <form action="{% url 'logout' %}" method="post" class="inline">
                     {% csrf_token %}
@@ -53,12 +85,12 @@
 
     <main class="max-w-4xl mx-auto px-6">
         <div class="py-12 text-center">
-            <h1 class="text-4xl font-bold mb-4">How can I help you today?</h1>
+            <h1 class="text-4xl mb-4">How can I help you today?</h1>
             <p class="text-gray-600 dark:text-gray-400 mb-8 text-lg">Ask a question and I'll search our internal documents for an answer.</p>
             
             <form method="GET" action="/search" class="relative max-w-2xl mx-auto">
                 <input type="text" name="q" placeholder="Ask a question..." 
-                       class="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-indigo-500 outline-none shadow-lg transition-all">
+                       class="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-brand outline-none shadow-lg transition-all">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-5 text-gray-400"></i>
             </form>
         </div>
@@ -70,7 +102,6 @@
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-toggle-icon');
 
-        // Initial icon setup
         function updateIcon() {
             if (document.documentElement.classList.contains('dark')) {
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
@@ -81,7 +112,6 @@
         updateIcon();
 
         themeToggleBtn.addEventListener('click', function() {
-            // Toggle the dark class
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('color-theme', 'light');
