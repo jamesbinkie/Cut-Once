@@ -31,11 +31,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "cut_once.urls"
 
-# Inside settings.py
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # This line is critical—it tells Django to check your custom 'templates' folder first
         'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
@@ -65,13 +63,18 @@ TIME_ZONE = "Europe/London"
 USE_I18N = True
 USE_TZ = True
 
+# --- STATIC FILES CONFIGURATION ---
 STATIC_URL = "static/"
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Add this line to tell Django to look in app folders for static files
+# This is the directory where collectstatic will collect all static files for deployment
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Ensure the /home/james/myproject/static directory exists to avoid the W004 warning
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_TRUSTED_ORIGINS = [
     "https://james-cut-once.uk",
@@ -79,10 +82,6 @@ CSRF_TRUSTED_ORIGINS = [
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Add these to the very bottom of settings.py if they aren't there
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
-
-# Point Django to your templates folder
-TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates']
