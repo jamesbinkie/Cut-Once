@@ -1,6 +1,7 @@
 {% extends "admin/base.html" %}
-{% load i18n %}  {% block title %}{{ title }} | Cut-Once Admin{% endblock %}
+{% load i18n %}
 
+{% block title %}{{ title }} | Cut-Once Admin{% endblock %}
 
 {% block extrastyle %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -9,30 +10,92 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <style>
-    /* ... your existing styles ... */
-
-    /* 6. Fix Top Right User Links Visibility */
-    #user-tools {
-        color: #444 !important; /* Dark grey for readability in Light Mode */
+    /* 1. Remove default system theme toggles */
+    #header #theme-toggle, .theme-toggle, .header-actions { 
+        display: none !important; 
     }
 
-    #user-tools a {
-        color: #009FE3 !important; /* Use your brand blue for links */
+    /* 2. Admin Header Layout - Custom padding and White BG */
+    #header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 10px 40px !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #eee !important;
+        height: auto !important;
     }
 
-    /* Adjust for Dark Mode */
-    html.dark #user-tools {
-        color: #a1a1aa !important; /* Light grey for Dark Mode */
+    /* 3. Branding & Typography - Signature Blue */
+    body, #content { 
+        font-family: 'Open Sans', sans-serif !important; 
     }
     
-    html.dark #user-tools a {
-        color: #009FE3 !important;
+    #branding h1, 
+    #branding h1 a, 
+    #branding h1 a:link, 
+    #branding h1 a:visited { 
+        color: #009FE3 !important; 
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        background: transparent !important;
     }
 
-    /* Your existing button style */
+    /* 4. Top Right User Links Visibility - Light Mode Fix */
+    #user-tools {
+        color: #444 !important; /* Dark text for "Welcome, User" */
+        font-weight: 600 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        text-align: right !important;
+    }
+
+    #user-tools a, 
+    #user-tools a:link, 
+    #user-tools a:visited {
+        color: #009FE3 !important; /* Brand Blue for links */
+        text-decoration: underline !important;
+    }
+
+    #user-tools a:hover {
+        color: #444 !important;
+    }
+
+    /* 5. Custom Theme Toggle Button */
     #custom-admin-toggle {
-        /* ... existing properties ... */
-        color: #009FE3; 
+        background: transparent !important;
+        border: none !important;
+        color: #009FE3 !important;
+        cursor: pointer !important;
+        padding: 0 15px !important;
+        font-size: 1.2rem !important;
+        transition: transform 0.2s !important;
+    }
+
+    /* 6. DARK MODE OVERRIDES */
+    html.dark #header {
+        background: #18181b !important;
+        border-bottom: 1px solid #3f3f46 !important;
+    }
+
+    html.dark #user-tools {
+        color: #f4f4f5 !important; /* Light text for Dark Mode */
+    }
+
+    html.dark div.breadcrumbs { 
+        background: #27272a !important; 
+        color: #a1a1aa !important; 
+    }
+
+    /* Logout Form Styling */
+    #logout-form button {
+        background: none !important;
+        border: none !important;
+        color: #009FE3 !important;
+        font: inherit !important;
+        cursor: pointer !important;
+        text-decoration: underline !important;
+        padding: 0 !important;
     }
 </style>
 
@@ -52,7 +115,6 @@
         }
     }
 
-    // Sync state on load
     function initTheme() {
         const theme = localStorage.getItem('color-theme');
         const icon = document.querySelector('#custom-admin-toggle i');
@@ -62,6 +124,7 @@
             if(icon) icon.classList.replace('fa-moon', 'fa-sun');
         }
     }
+    
     initTheme();
     document.addEventListener('DOMContentLoaded', initTheme);
 </script>
@@ -91,7 +154,7 @@
     
     <form action="{% url 'admin:logout' %}" method="post" id="logout-form" style="display:inline;">
         {% csrf_token %}
-        <button type="submit" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;padding:0;">
+        <button type="submit">
             {% translate 'Log out' %}
         </button>
     </form>
