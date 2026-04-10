@@ -8,14 +8,14 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        # Paths relative to the static folder
-        js = ('knowledge/js/page_builder.js?v=9999',)
+        # Paths relative to your static folder
+        js = ('knowledge/js/page_builder.js?v=final_fix',)
         css = {
-            'all': ('knowledge/css/admin_builder.css?v=9999',)
+            'all': ('knowledge/css/admin_builder.css?v=final_fix',)
         }
     
     def review_status(self, obj):
-        # Placeholder {} is required by format_html in modern Django
+        # Placeholder {} is mandatory in format_html
         if obj.needs_review:
             return format_html('<span style="color: red; font-weight: bold;">{}</span>', '⚠️ NEEDS REVIEW')
         return format_html('<span style="color: green; font-weight: bold;">{}</span>', '✅ CURRENT')
