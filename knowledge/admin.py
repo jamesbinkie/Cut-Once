@@ -13,10 +13,16 @@ class ArticleAdmin(admin.ModelAdmin):
             'all': ('knowledge/css/admin_builder.css',)
         }
     
-    # Make sure this is indented to be EXACTLY in line with 'class Media:' above it!
     def review_status(self, obj):
         if obj.needs_review:
             return format_html('<span style="color: red; font-weight: bold;">{}</span>', '⚠️ NEEDS REVIEW')
         return format_html('<span style="color: green; font-weight: bold;">{}</span>', '✅ CURRENT')
 
     review_status.short_description = "Status"
+
+    # --- ADDED THIS TO SET DEFAULT USER ---
+    def get_changeform_initial_data(self, request):
+        # Grabs standard defaults, then overrides 'owner' with the logged-in user
+        initial = super().get_changeform_initial_data(request)
+        initial['owner'] = request.user
+        return initial
