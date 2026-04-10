@@ -53,24 +53,14 @@ DATABASES = {
     }
 }
 
-AUTH_PASSWORD_VALIDATORS = []
-LANGUAGE_CODE = "en-gb"
-TIME_ZONE = "Europe/London"
-USE_I18N = True
-USE_TZ = True
-
-# --- FIXED STATIC FILES ---
+# --- STATIC FILES FIXED ---
 STATIC_URL = "static/"
-# Folder where collectstatic will gather everything
+# The folder where everything is gathered for the browser
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# Folder where you manually put your files (Step 1 above)
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+
+# This is critical: It tells Django to look inside your app's static folder
+STATICFILES_DIRS = [] 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_TRUSTED_ORIGINS = ["https://james-cut-once.uk"]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
