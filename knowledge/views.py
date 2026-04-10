@@ -1,4 +1,4 @@
-from django.shortcuts import render  # <--- This is the missing line
+from django.shortcuts import render, get_object_or_404 # <-- Added get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Article
 
@@ -15,3 +15,10 @@ def home_search(request):
         'query': query,
         'articles': articles
     })
+
+# --- ADD THIS NEW VIEW ---
+@login_required
+def article_detail(request, slug):
+    # This finds the exact article or returns a 404 Not Found if it doesn't exist
+    article = get_object_or_404(Article, slug=slug) 
+    return render(request, 'knowledge/article_detail.html', {'article': article})
