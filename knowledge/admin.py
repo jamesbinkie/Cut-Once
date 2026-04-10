@@ -8,10 +8,11 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        # Use a high version number to break the cache
-        js = ('knowledge/js/page_builder.js?v=2000',)
+        # Paths are relative to the static folder. 
+        # v=3000 ensures a hard refresh of the browser cache.
+        js = ('knowledge/js/page_builder.js?v=3000',)
         css = {
-            'all': ('knowledge/css/admin_builder.css?v=2000',)
+            'all': ('knowledge/css/admin_builder.css?v=3000',)
         }
     
     def review_status(self, obj):
