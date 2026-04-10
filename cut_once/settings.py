@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 SECRET_KEY = "replace-this-with-any-random-string-for-now"
 DEBUG = True
 ALLOWED_HOSTS = ["james-cut-once.uk"]
@@ -55,24 +54,23 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = []
-
 LANGUAGE_CODE = "en-gb"
 TIME_ZONE = "Europe/London"
 USE_I18N = True
 USE_TZ = True
 
-# --- CLEANED STATIC CONFIGURATION ---
+# --- FIXED STATIC FILES ---
 STATIC_URL = "static/"
-# This is where collectstatic will dump everything
+# Folder where collectstatic will gather everything
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# We leave this empty so Django correctly finds files inside knowledge/static/
-STATICFILES_DIRS = []
+# Folder where you manually put your files (Step 1 above)
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_TRUSTED_ORIGINS = ["https://james-cut-once.uk"]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
