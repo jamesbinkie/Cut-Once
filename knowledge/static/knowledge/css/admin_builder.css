@@ -1,0 +1,49 @@
+/* Variables for Light and Dark Mode */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #212529;
+    --nav-bg: #f8f9fa;
+    --input-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #f0f0f0;
+    --nav-bg: #2d2d2d;
+    --input-bg: #333333;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+nav {
+    background-color: var(--nav-bg);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+}
+
+.search-container {
+    max-width: 800px;
+    margin: 100px auto;
+    text-align: center;
+}
+
+.search-box {
+    width: 80%;
+    padding: 15px 25px;
+    font-size: 1.1rem;
+    border-radius: 30px;
+    border: 1px solid #ccc;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}

@@ -1,46 +1,46 @@
 (function() {
-    // 1. Inject External Quill Assets
-    const qCss = document.createElement('link');
-    qCss.rel = 'stylesheet'; qCss.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
-    document.head.appendChild(qCss);
-
-    const qJs = document.createElement('script');
-    qJs.src = 'https://cdn.quilljs.com/1.3.6/quill.js';
-    document.head.appendChild(qJs);
+    // 1. Inject External TinyMCE JS
+    const tScript = document.createElement('script');
+    tScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js';
+    document.head.appendChild(tScript);
 
     function startEditor() {
         const targetField = document.getElementById('id_content');
         if (!targetField) return;
 
-        targetField.style.display = 'none';
-        if (document.getElementById('google-doc-editor')) return;
-
-        const container = document.createElement('div');
-        container.style = "background: white; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px; color: black !important;";
-        container.innerHTML = `<div id="google-doc-editor" style="height: 500px; font-size: 16px;">${targetField.value}</div>`;
-        targetField.parentNode.insertBefore(container, targetField);
-
-        const quill = new Quill('#google-doc-editor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
-                    ['link', 'image', 'video'],
-                    ['clean']
-                ]
+        // Initialize TinyMCE directly onto Django's textarea
+        tinymce.init({
+            selector: '#id_content',
+            height: '75vh',
+            menubar: true,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'wordcount', 'codesample'
+            ],
+            toolbar: 'undo redo | blocks | ' +
+            'bold italic underline | alignleft aligncenter ' +
+            'alignright alignjustify | bullist numlist | ' +
+            'image media codesample code | fullscreen',
+            
+            // Advanced Image Options
+            image_advtab: true,
+            
+            // CRITICAL: Tell the editor NOT to strip out iframes or script tags
+            extended_valid_elements: 'iframe[src|width|height|name|align|frameborder|scrolling|allowfullscreen|allow],script[src|async|defer|type|charset]',
+            
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px; }',
+            
+            // Ensure data syncs back to Django before saving
+            setup: function (editor) {
+                editor.on('change', function () {
+                    editor.save();
+                });
             }
-        });
-
-        quill.on('text-change', () => {
-            targetField.value = quill.root.innerHTML;
         });
     }
 
-    qJs.onload = () => {
+    tScript.onload = () => {
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             startEditor();
         } else {
