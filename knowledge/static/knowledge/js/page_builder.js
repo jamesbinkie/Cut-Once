@@ -1,5 +1,5 @@
 (function() {
-    // 1. Inject Quill resources
+    // 1. Inject Quill Resources
     const qCss = document.createElement('link');
     qCss.rel = 'stylesheet'; qCss.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
     document.head.appendChild(qCss);
@@ -9,7 +9,7 @@
     document.head.appendChild(qJs);
 
     function startEditor() {
-        // Matches the ID in your 'Add Article' HTML
+        // Target the field found in your admin HTML
         const targetField = document.getElementById('id_content');
         if (!targetField) return;
 
