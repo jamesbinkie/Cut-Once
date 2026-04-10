@@ -1,5 +1,5 @@
 (function() {
-    // 1. Load Quill Editor Resources
+    // 1. Inject Quill resources
     const qCss = document.createElement('link');
     qCss.rel = 'stylesheet'; qCss.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
     document.head.appendChild(qCss);
@@ -9,7 +9,7 @@
     document.head.appendChild(qJs);
 
     function startEditor() {
-        // Matches the ID labled 'id_content' in your admin HTML
+        // Matches the ID in your 'Add Article' HTML
         const targetField = document.getElementById('id_content');
         if (!targetField) return;
 
