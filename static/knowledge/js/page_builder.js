@@ -1,5 +1,4 @@
 (function() {
-    // 1. Inject Quill Resources
     const qCss = document.createElement('link');
     qCss.rel = 'stylesheet'; qCss.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
     document.head.appendChild(qCss);
@@ -9,11 +8,12 @@
     document.head.appendChild(qJs);
 
     function startEditor() {
-        // Target the field found in your admin HTML
         const targetField = document.getElementById('id_content');
         if (!targetField) return;
 
         targetField.style.display = 'none';
+        if (document.getElementById('google-doc-editor')) return;
+
         const container = document.createElement('div');
         container.style = "background: white; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px; color: black !important;";
         container.innerHTML = `<div id="google-doc-editor" style="height: 500px; font-size: 16px;">${targetField.value}</div>`;
