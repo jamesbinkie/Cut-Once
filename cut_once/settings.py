@@ -59,12 +59,12 @@ TIME_ZONE = "Europe/London"
 USE_I18N = True
 USE_TZ = True
 
-# --- CLEAN STATIC CONFIGURATION ---
+# --- FINAL STATIC CONFIGURATION ---
 STATIC_URL = "static/"
-# The live folder for the web server
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# We leave this EMPTY to let Django find the 'knowledge/static' folder automatically
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_TRUSTED_ORIGINS = ["https://james-cut-once.uk"]
