@@ -8,15 +8,17 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        # Changed version to v=999 to force immediate update
-        js = ('knowledge/js/page_builder.js?v=999',)
+        # Paths are relative to the 'static' folder. 
+        # v=1000 forces the browser to ignore previous 404 cache.
+        js = ('knowledge/js/page_builder.js?v=1000',)
         css = {
-            'all': ('knowledge/css/admin_builder.css?v=999',)
+            'all': ('knowledge/css/admin_builder.css?v=1000',)
         }
     
     def review_status(self, obj):
+        # FIX: Added {} and passed the text as an argument to satisfy format_html
         if obj.needs_review:
-            return format_html('<span style="color: red; font-weight: bold;">⚠️ NEEDS REVIEW</span>')
-        return format_html('<span style="color: green; font-weight: bold;">✅ CURRENT</span>')
+            return format_html('<span style="color: red; font-weight: bold;">{}</span>', '⚠️ NEEDS REVIEW')
+        return format_html('<span style="color: green; font-weight: bold;">{}</span>', '✅ CURRENT')
 
     review_status.short_description = "Status"
