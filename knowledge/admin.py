@@ -8,7 +8,7 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
 
     class Media:
-        js = ('knowledge/js/page_builder.js',)
+        js = ('knowledge/js/Page_Builder_V2.js',)  # <-- CHANGED THIS LINE
         css = {
             'all': ('knowledge/css/admin_builder.css',)
         }
