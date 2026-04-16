@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Search Results: "{{ query }}"</h2>
+            <div class="ai-answer-card p-4 bg-light border rounded mb-4">
+                <h5>AI Summary</h5>
+                <hr>
+                <div class="ai-content">
+                    {{ answer|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4 border-{{ status }} border-3">
+                <div class="card-header bg-{{ status }} text-white">
+                    <strong>Certainty Rating</strong>
+                </div>
+                <div class="card-body text-center">
+                    <h1 class="display-4">{{ confidence }}%</h1>
+                    <p class="text-muted">Based on internal documentation matches.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Was this helpful?</div>
+                <div class="card-body text-center" id="feedback-area">
+                    <div class="btn-group w-100">
+                        <button onclick="sendFeedback(1)" class="btn btn-outline-success">Great</button>
+                        <button onclick="sendFeedback(2)" class="btn btn-outline-warning">Meh</button>
+                        <button onclick="sendFeedback(3)" class="btn btn-outline-danger">Nope</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function sendFeedback(value) {
+    const formData = new FormData();
+    formData.append('feedback', value);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch("{% url 'submit_feedback' history_id %}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            document.getElementById('feedback-area').innerHTML = '<div class="alert alert-success">Thanks for the feedback!</div>';
+        }
+    });
+}
+</script>
+
+<style>
+    /* Status Colors for the Certainty Box */
+    .border-green { border-color: #28a745 !important; }
+    .bg-green { background-color: #28a745 !important; }
+    .border-amber { border-color: #ffc107 !important; }
+    .bg-amber { background-color: #ffc107 !important; }
+    .border-red { border-color: #dc3545 !important; }
+    .bg-red { background-color: #dc3545 !important; }
+</style>
+{% endblock %}
