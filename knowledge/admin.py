@@ -78,3 +78,11 @@ class ArticleAdmin(admin.ModelAdmin):
         initial = super().get_changeform_initial_data(request)
         initial['owner'] = request.user
         return initial
+
+@admin.register(SearchHistory)
+class SearchHistoryAdmin(admin.ModelAdmin):
+    list_display = ('query', 'confidence_score', 'user_feedback', 'needs_documentation', 'created_at')
+    list_filter = ('needs_documentation', 'user_feedback')
+    readonly_fields = ('query', 'ai_response', 'confidence_score', 'created_at')
+    
+    def has_add_permission(self, request): return False # Only system can create history
