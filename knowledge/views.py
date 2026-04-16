@@ -1,5 +1,5 @@
 import requests
-import vectordb
+from vectordb import search  # Updated import logic
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from .models import Article, SearchHistory
@@ -9,8 +9,9 @@ def ai_search_view(request):
     if not query:
         return render(request, 'knowledge/search.html')
 
-    # 1. RETRIEVAL: Find top 3 relevant internal docs
-    search_results = vectordb.search(query, k=3)
+    # 1. RETRIEVAL: Using the corrected search function
+    # search() returns a list of results with .text and .score
+    search_results = search(query, k=3)
     context_list = [res.text for res in search_results]
     context_text = "\n---\n".join(context_list)
     
@@ -55,11 +56,8 @@ def submit_feedback(request, history_id):
     if request.method == 'POST':
         feedback_value = request.POST.get('feedback')
         history.user_feedback = int(feedback_value)
-        
-        # Flag for documentation if user is unhappy
-        if history.user_feedback == 3:
+        if history.user_feedback == 3: # 'Nope'
             history.needs_documentation = True
-            
         history.save()
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
