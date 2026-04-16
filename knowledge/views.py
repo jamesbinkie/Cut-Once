@@ -1,6 +1,7 @@
 import requests
 import vectordb
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
 from .models import Article, SearchHistory
 
 def ai_search_view(request):
@@ -8,56 +9,54 @@ def ai_search_view(request):
     if not query:
         return render(request, 'knowledge/search.html')
 
-    # 1. RETRIEVAL: Find the most relevant internal documents
-    # vectordb returns a similarity score we use for confidence
+    # 1. RETRIEVAL: Find top 3 relevant internal docs
+    # Similarity scores closer to 1 indicate higher similarity
     search_results = vectordb.search(query, k=3)
-    context_list = []
-    total_similarity = 0
-    
-    for res in search_results:
-        context_list.append(res.text)
-        total_similarity += res.score # res.score is typically 0 to 1
-
+    context_list = [res.text for res in search_results]
     context_text = "\n---\n".join(context_list)
     
     # 2. CONFIDENCE CALCULATION
-    # We normalize the vector similarity into a 0-100 percentage
-    base_confidence = min(100, int((total_similarity / 3) * 100)) if context_list else 0
+    # Combine similarity scores to create a percentage confidence
+    avg_score = sum([res.score for res in search_results]) / 3 if search_results else 0
+    confidence = min(100, int(avg_score * 100))
 
-    # 3. GENERATION: Ask Local Ollama for a summary
-    # We explicitly tell it NOT to use external knowledge
-    prompt = f"""
-    You are an internal assistant. Use ONLY the following internal documentation to answer.
-    If the answer is not in the documentation, say "I do not have enough information."
-    
-    DOCUMENTS:
-    {context_text}
-    
-    USER QUESTION: {query}
-    """
-    
+    # 3. GENERATION: Ask Ollama (llama3.2:1b) for the summary
+    prompt = f"Use ONLY this info: {context_text}\n\nQuestion: {query}"
     try:
         response = requests.post('http://localhost:11434/api/generate', json={
             "model": "llama3.2:1b",
             "prompt": prompt,
             "stream": False
-        }, timeout=10)
-        ai_answer = response.json().get('response', 'AI failed to respond.')
+        }, timeout=15)
+        ai_answer = response.json().get('response')
     except:
-        ai_answer = "Local AI is currently offline."
+        ai_answer = "Internal AI is currently offline."
 
-    # 4. SAVE TO HISTORY (Knowledge Gap Detection)
+    # 4. LOGGING: Create the history record with Knowledge Gap flag
     history = SearchHistory.objects.create(
         query=query,
         ai_response=ai_answer,
-        confidence_score=base_confidence,
-        needs_documentation=True if base_confidence < 50 else False
+        confidence_score=confidence,
+        needs_documentation=True if confidence < 50 else False
     )
 
     return render(request, 'knowledge/search_results.html', {
         'query': query,
         'answer': ai_answer,
-        'confidence': base_confidence,
+        'confidence': confidence,
         'status': history.rag_status(),
         'history_id': history.id
     })
+
+def submit_feedback(request, history_id):
+    """AJAX endpoint to save user feedback (Great/Meh/Nope)."""
+    history = get_object_or_404(SearchHistory, id=history_id)
+    feedback_value = request.POST.get('feedback')
+    history.user_feedback = int(feedback_value)
+    
+    # If user says "Nope", flag it for documentation even if score was high
+    if history.user_feedback == 3:
+        history.needs_documentation = True
+        
+    history.save()
+    return JsonResponse({'status': 'success'})
