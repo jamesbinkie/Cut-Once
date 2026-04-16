@@ -14,7 +14,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'knowledge',
-    'django_ckeditor_5', # Added for the editor
+    'django_ckeditor_5',
+    'vectordb',  # Add this line
 ]
 
 MIDDLEWARE = [
