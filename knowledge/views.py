@@ -18,7 +18,7 @@ def ai_search_view(request):
     avg_score = sum([res.score for res in search_results]) / 3 if search_results else 0
     confidence = min(100, int(avg_score * 100))
 
-    # 3. GENERATION: Ask Ollama (llama3.2:1b) for the summary
+    # 3. GENERATION: Ask Ollama (llama3.2:1b)
     prompt = f"Use ONLY this info: {context_text}\n\nQuestion: {query}"
     try:
         response = requests.post('http://localhost:11434/api/generate', json={
@@ -28,9 +28,9 @@ def ai_search_view(request):
         }, timeout=15)
         ai_answer = response.json().get('response')
     except:
-        ai_answer = "Internal AI is currently offline."
+        ai_answer = "Internal AI is currently offline. Please ensure Ollama is running."
 
-    # 4. LOGGING: Create the history record with Knowledge Gap flag
+    # 4. LOGGING: Create the history record
     history = SearchHistory.objects.create(
         query=query,
         ai_response=ai_answer,
@@ -46,20 +46,17 @@ def ai_search_view(request):
         'history_id': history.id
     })
 
-# --- ADDED THIS BACK IN TO FIX THE ERROR ---
 def article_detail(request, slug):
-    """View to display a single article."""
     article = get_object_or_404(Article, slug=slug)
     return render(request, 'knowledge/article_detail.html', {'article': article})
 
 def submit_feedback(request, history_id):
-    """AJAX endpoint to save user feedback (Great/Meh/Nope)."""
     history = get_object_or_404(SearchHistory, id=history_id)
     if request.method == 'POST':
         feedback_value = request.POST.get('feedback')
         history.user_feedback = int(feedback_value)
         
-        # If user says "Nope", flag it for documentation even if score was high
+        # Flag for documentation if user is unhappy
         if history.user_feedback == 3:
             history.needs_documentation = True
             
