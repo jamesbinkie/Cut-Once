@@ -1,49 +1,57 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import User
 from django.utils.html import format_html
 from .models import Article
 
-# --- 1. HIERARCHY & UI CLEANUP ---
+# --- 1. HIERARCHY & AUTOMATION ---
 class CustomUserAdmin(UserAdmin):
-    # This removes the "User Permissions" box so you only see "Groups"
-    fieldsets = (
-        (None, {"fields": ("username", "password")}),
-        ("Personal info", {"fields": ("first_name", "last_name", "email")}),
-        (
-            "Permissions",
-            {
-                "fields": (
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                    "groups", # We keep Groups but hide individual perms
-                ),
-            },
-        ),
-        ("Important dates", {"fields": ("last_login", "date_joined")}),
-    )
+    def get_fieldsets(self, request, obj=None):
+        """ Dynamically hide fields based on who is logged in. """
+        fieldsets = list(super().get_fieldsets(request, obj))
+        
+        # Find the 'Permissions' section in the admin form
+        for name, field_options in fieldsets:
+            if name == 'Permissions':
+                fields = list(field_options.get('fields', []))
+                
+                # 1. Remove 'user_permissions' (the huge messy list) for everyone
+                if 'user_permissions' in fields:
+                    fields.remove('user_permissions')
+                
+                # 2. Remove 'is_staff' - we will automate this instead
+                if 'is_staff' in fields:
+                    fields.remove('is_staff')
+                
+                # 3. Remove 'is_superuser' if the logged-in user isn't a Super-Admin
+                if not request.user.is_superuser and 'is_superuser' in fields:
+                    fields.remove('is_superuser')
+                
+                field_options['fields'] = tuple(fields)
+        return tuple(fieldsets)
+
+    def save_model(self, request, obj, form, change):
+        """ 
+        Automatically set 'is_staff' to True if the user is placed 
+        in a group (like your Admin group).
+        """
+        # If they are in any group, they are likely an Admin and need backend access
+        if obj.groups.exists():
+            obj.is_staff = True
+        else:
+            # If they have no groups, they are a General user (no backend access)
+            obj.is_staff = False
+            
+        super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
+        """ Hide Super-Admins from the user list for standard Admins. """
         qs = super().get_queryset(request)
-        # Tier 1 Protection: Hide Super-Admins from everyone except other Super-Admins
         if not request.user.is_superuser:
             return qs.filter(is_superuser=False)
         return qs
 
-    def has_change_permission(self, request, obj=None):
-        # Tier 1 Protection: Admins cannot edit Super-Admins
-        if obj and obj.is_superuser and not request.user.is_superuser:
-            return False
-        return super().has_change_permission(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        # Tier 1 Protection: Admins cannot delete Super-Admins
-        if obj and obj.is_superuser and not request.user.is_superuser:
-            return False
-        return super().has_delete_permission(request, obj)
-
-# Re-register the User model with our clean UI and protection logic
+# Re-register User with these refined rules
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
