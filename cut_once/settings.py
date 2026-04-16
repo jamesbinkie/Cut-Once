@@ -78,9 +78,24 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
-# CKEditor 5 Configuration
+# ... (rest of your settings.py remains the same)
+
+# CKEditor 5 Configuration Updated
 CKEDITOR_5_CONFIGS = {
     'default': {
-        'toolbar': ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', ],
+        'toolbar': [
+            'heading', '|', 'bold', 'italic', 'link', 
+            'bulletedList', 'numberedList', 'blockQuote', 'imageUpload',
+        ],
+        # Added to fix the "widget-toolbar-no-items" error
+        'image': {
+            'toolbar': [
+                'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight',
+                '|', 'imageTextAlternative'
+            ],
+            'styles': [
+                'alignLeft', 'alignCenter', 'alignRight'
+            ]
+        }
     }
 }
