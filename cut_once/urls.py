@@ -1,15 +1,19 @@
 from django.contrib import admin
 from django.urls import path, include 
 from knowledge import views
+from django.conf import settings # Added
+from django.conf.urls.static import static # Added
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home_search, name='home'),
-    
-    # --- ADD THIS NEW LINE ---
-    # This matches the 'article_detail' name your models.py is looking for
     path('article/<slug:slug>/', views.article_detail, name='article_detail'), 
-    
-    # This line adds login, logout, password resets, etc.
     path('accounts/', include('django.contrib.auth.urls')), 
+    
+    # CKEditor 5 URL
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
 ]
+
+# Serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
