@@ -100,3 +100,8 @@ CKEDITOR_5_CONFIGS = {
         }
     }
 }
+# VectorDB Configuration
+VECTORDB_CONFIG = {
+    'DEFAULT_CAPACITY': 1000,
+    'INDEX_FILE_PATH': os.path.join(BASE_DIR, 'vector_index.bin'),
+}
