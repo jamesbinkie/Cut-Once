@@ -81,8 +81,12 @@ class ArticleAdmin(admin.ModelAdmin):
 
 @admin.register(SearchHistory)
 class SearchHistoryAdmin(admin.ModelAdmin):
+    # This creates your "Knowledge Gap" dashboard
     list_display = ('query', 'confidence_score', 'user_feedback', 'needs_documentation', 'created_at')
-    list_filter = ('needs_documentation', 'user_feedback')
+    list_filter = ('needs_documentation', 'user_feedback', 'confidence_score')
+    search_fields = ('query',)
     readonly_fields = ('query', 'ai_response', 'confidence_score', 'created_at')
-    
-    def has_add_permission(self, request): return False # Only system can create history
+
+    def get_queryset(self, request):
+        """Highlight queries that need articles written."""
+        return super().get_queryset(request).order_by('-needs_documentation', '-created_at')
