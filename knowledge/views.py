@@ -10,13 +10,11 @@ def ai_search_view(request):
         return render(request, 'knowledge/search.html')
 
     # 1. RETRIEVAL: Find top 3 relevant internal docs
-    # Similarity scores closer to 1 indicate higher similarity
     search_results = vectordb.search(query, k=3)
     context_list = [res.text for res in search_results]
     context_text = "\n---\n".join(context_list)
     
     # 2. CONFIDENCE CALCULATION
-    # Combine similarity scores to create a percentage confidence
     avg_score = sum([res.score for res in search_results]) / 3 if search_results else 0
     confidence = min(100, int(avg_score * 100))
 
@@ -48,15 +46,23 @@ def ai_search_view(request):
         'history_id': history.id
     })
 
+# --- ADDED THIS BACK IN TO FIX THE ERROR ---
+def article_detail(request, slug):
+    """View to display a single article."""
+    article = get_object_or_404(Article, slug=slug)
+    return render(request, 'knowledge/article_detail.html', {'article': article})
+
 def submit_feedback(request, history_id):
     """AJAX endpoint to save user feedback (Great/Meh/Nope)."""
     history = get_object_or_404(SearchHistory, id=history_id)
-    feedback_value = request.POST.get('feedback')
-    history.user_feedback = int(feedback_value)
-    
-    # If user says "Nope", flag it for documentation even if score was high
-    if history.user_feedback == 3:
-        history.needs_documentation = True
+    if request.method == 'POST':
+        feedback_value = request.POST.get('feedback')
+        history.user_feedback = int(feedback_value)
         
-    history.save()
-    return JsonResponse({'status': 'success'})
+        # If user says "Nope", flag it for documentation even if score was high
+        if history.user_feedback == 3:
+            history.needs_documentation = True
+            
+        history.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
