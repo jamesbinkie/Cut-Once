@@ -7,16 +7,17 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Home page is now the AI search
-    path('', views.ai_search_view, name='home'),
+    # Match the URL path '/search' that caused the 404
+    path('search/', views.ai_search_view, name='home'),
     
-    # Individual article view
+    # Redirect empty root to search if desired, or keep search on home
+    path('', views.ai_search_view, name='index'), 
+    
     path('article/<slug:slug>/', views.article_detail, name='article_detail'), 
-    
     path('accounts/', include('django.contrib.auth.urls')), 
     path('ckeditor5/', include('django_ckeditor_5.urls')),
     
-    # Endpoint for the feedback buttons
+    # Feedback endpoint for the AI results
     path('feedback/<int:history_id>/', views.submit_feedback, name='submit_feedback'),
 ]
 
