@@ -10,20 +10,19 @@ class CustomUserAdmin(UserAdmin):
         """ Dynamically hide fields based on who is logged in. """
         fieldsets = list(super().get_fieldsets(request, obj))
         
-        # Find the 'Permissions' section in the admin form
         for name, field_options in fieldsets:
             if name == 'Permissions':
                 fields = list(field_options.get('fields', []))
                 
-                # 1. Remove 'user_permissions' (the huge messy list) for everyone
+                # Remove messy individual permissions for everyone
                 if 'user_permissions' in fields:
                     fields.remove('user_permissions')
                 
-                # 2. Remove 'is_staff' - we will automate this instead
+                # Remove 'is_staff' - we automate this via Groups
                 if 'is_staff' in fields:
                     fields.remove('is_staff')
                 
-                # 3. Remove 'is_superuser' if the logged-in user isn't a Super-Admin
+                # Hide 'is_superuser' from everyone except existing Super-Admins
                 if not request.user.is_superuser and 'is_superuser' in fields:
                     fields.remove('is_superuser')
                 
@@ -32,26 +31,28 @@ class CustomUserAdmin(UserAdmin):
 
     def save_model(self, request, obj, form, change):
         """ 
-        Automatically set 'is_staff' to True if the user is placed 
-        in a group (like your Admin group).
+        Fixes the ValueError: Checks form data to see if a Group was 
+        selected, then sets Staff status automatically.
         """
-        # If they are in any group, they are likely an Admin and need backend access
-        if obj.groups.exists():
+        # Look at the selected groups in the form before the user is saved
+        selected_groups = form.cleaned_data.get('groups')
+        
+        if selected_groups and selected_groups.exists():
             obj.is_staff = True
         else:
-            # If they have no groups, they are a General user (no backend access)
+            # If no groups are selected, they are a General user (no backend)
             obj.is_staff = False
             
         super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
-        """ Hide Super-Admins from the user list for standard Admins. """
+        """ Protects Super-Admins from being seen or edited by standard Admins. """
         qs = super().get_queryset(request)
         if not request.user.is_superuser:
             return qs.filter(is_superuser=False)
         return qs
 
-# Re-register User with these refined rules
+# Re-register User with the fixed automation
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
