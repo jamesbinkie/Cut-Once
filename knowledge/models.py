@@ -10,7 +10,7 @@ class Article(models.Model):
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     last_reviewed = models.DateField(default=timezone.now)
 
-    # Added: This tells the AI what to index for search
+    # Required for AI Search: Tells the indexer what to read
     def get_vectordb_text(self):
         return f"Title: {self.title}\nContent: {self.content}"
 
@@ -28,12 +28,12 @@ class SearchHistory(models.Model):
     FEEDBACK_CHOICES = [(1, 'Great'), (2, 'Meh'), (3, 'Nope')]
     user_feedback = models.IntegerField(choices=FEEDBACK_CHOICES, null=True, blank=True)
     
-    # Knowledge Gap Flag
+    # Knowledge Gap Flag for your report
     needs_documentation = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def rag_status(self):
-        """Returns the RAG color based on confidence."""
+        """Returns the color code for the certainty box."""
         if self.confidence_score >= 80: return 'green'
         if self.confidence_score >= 50: return 'amber'
         return 'red'
