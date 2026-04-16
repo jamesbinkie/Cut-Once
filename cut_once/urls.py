@@ -7,14 +7,16 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Updated to use the new AI search view
+    # Home page is now the AI search
     path('', views.ai_search_view, name='home'),
     
+    # Individual article view
     path('article/<slug:slug>/', views.article_detail, name='article_detail'), 
+    
     path('accounts/', include('django.contrib.auth.urls')), 
     path('ckeditor5/', include('django_ckeditor_5.urls')),
     
-    # New endpoint for the feedback buttons
+    # Endpoint for the feedback buttons
     path('feedback/<int:history_id>/', views.submit_feedback, name='submit_feedback'),
 ]
 
