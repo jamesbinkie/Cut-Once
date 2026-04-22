@@ -37,25 +37,36 @@ def ai_search_view(request):
     avg_score = (total_score / 3) if search_results else 0
     confidence = min(100, int(avg_score * 100))
 
-    # 3. GENERATION: Request a summary from Local Ollama
+# 3. GENERATION: Request a summary from Local Ollama
     try:
         response = requests.post('http://localhost:11434/api/generate', json={
             "model": "llama3.2:1b",
             "prompt": f"Use ONLY this info: {context_text}\n\nQuestion: {query}",
             "stream": False
-        }, timeout=120)  # High timeout for Raspberry Pi
+        }, timeout=120)
+        
+        # NEW: Force it to trigger the 'except' block if Ollama returns a 500 or 404 error
+        response.raise_for_status() 
+        
+        # Extract the response safely
         ai_answer = response.json().get('response')
-    except Exception:
-        ai_answer = "Internal AI is currently offline. Please ensure Ollama is running."
+        
+        # NEW: Catch if Ollama returned a 200 OK but the answer was completely blank
+        if not ai_answer:
+            ai_answer = "The AI returned an empty response. It might be struggling to process this request."
+
+    except Exception as e:
+        print(f"Ollama Error: {e}") # This will print the actual error to your terminal for debugging
+        ai_answer = "Internal AI is currently offline or encountered an error. Please ensure Ollama is running properly."
 
     # 4. LOGGING: Track search history and knowledge gaps
+    # Because we ensured ai_answer is ALWAYS a string now, the database won't crash!
     history = SearchHistory.objects.create(
         query=query,
         ai_response=ai_answer,
         confidence_score=confidence,
         needs_documentation=True if confidence < 50 else False
     )
-
     return render(request, 'knowledge/search_results.html', {
         'query': query,
         'answer': ai_answer,
