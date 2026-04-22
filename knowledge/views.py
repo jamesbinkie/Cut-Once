@@ -33,7 +33,7 @@ def ai_search_view(request):
             "model": "llama3.2:1b",
             "prompt": f"Use ONLY this info: {context_text}\n\nQuestion: {query}",
             "stream": False
-        }, timeout=15)
+        }, timeout=120)  # Increased timeout for Raspberry Pi
         ai_answer = response.json().get('response')
     except Exception:
         ai_answer = "Internal AI is currently offline. Please ensure Ollama is running."
@@ -46,12 +46,16 @@ def ai_search_view(request):
         needs_documentation=True if confidence < 50 else False
     )
 
+    # NEW: Extract the actual article objects from the search results
+    found_articles = [res.object for res in search_results] if search_results else []
+
     return render(request, 'knowledge/search_results.html', {
         'query': query,
         'answer': ai_answer,
         'confidence': confidence,
         'status': history.rag_status(),
-        'history_id': history.id
+        'history_id': history.id,
+        'articles': found_articles  # <-- Pass the articles here
     })
 
 def article_detail(request, slug):
