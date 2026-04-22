@@ -12,6 +12,21 @@
                     {{ answer|linebreaks }}
                 </div>
             </div>
+
+            <div class="mt-4">
+                <h4>Source Documents</h4>
+                {% if articles %}
+                    <ul class="list-group">
+                        {% for article in articles %}
+                            <li class="list-group-item">
+                                <a href="{% url 'article_detail' article.slug %}">{{ article.title }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No specific documents found for this query.</p>
+                {% endif %}
+            </div>
         </div>
 
         <div class="col-md-4">
