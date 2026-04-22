@@ -11,15 +11,25 @@ def ai_search_view(request):
         return render(request, 'knowledge/search.html')
 
     # 1. RETRIEVAL: Use the Vector model manager to search
-    # This matches the query against your mathematically indexed articles
     search_results = Vector.objects.search(query, k=3)
     
     context_list = []
     total_score = 0
-    for res in search_results:
-        # res.object is the original Article instance
-        context_list.append(f"Title: {res.object.title}\nContent: {res.object.content}")
-        total_score += res.score
+    found_articles = []
+    
+    if search_results:
+        for res in search_results:
+            # FIX: The vector DB stores our model data inside a 'metadata' dictionary, not 'object'
+            title = res.metadata.get('title', 'Unknown Title')
+            content = res.metadata.get('content', '')
+            
+            context_list.append(f"Title: {title}\nContent: {content}")
+            
+            # Safely add the score (defaulting to 0 if missing)
+            total_score += getattr(res, 'score', 0)
+            
+            # Add the metadata dictionary to our list so the HTML template can read the slug and title
+            found_articles.append(res.metadata)
 
     context_text = "\n---\n".join(context_list)
     
@@ -33,7 +43,7 @@ def ai_search_view(request):
             "model": "llama3.2:1b",
             "prompt": f"Use ONLY this info: {context_text}\n\nQuestion: {query}",
             "stream": False
-        }, timeout=120)  # Increased timeout for Raspberry Pi
+        }, timeout=120)  # High timeout for Raspberry Pi
         ai_answer = response.json().get('response')
     except Exception:
         ai_answer = "Internal AI is currently offline. Please ensure Ollama is running."
@@ -46,16 +56,13 @@ def ai_search_view(request):
         needs_documentation=True if confidence < 50 else False
     )
 
-    # NEW: Extract the actual article objects from the search results
-    found_articles = [res.object for res in search_results] if search_results else []
-
     return render(request, 'knowledge/search_results.html', {
         'query': query,
         'answer': ai_answer,
         'confidence': confidence,
         'status': history.rag_status(),
         'history_id': history.id,
-        'articles': found_articles  # <-- Pass the articles here
+        'articles': found_articles  # <-- Now passing the valid metadata dictionaries
     })
 
 def article_detail(request, slug):
