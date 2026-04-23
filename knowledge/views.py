@@ -67,13 +67,14 @@ def ai_search_view(request):
         status = history.rag_status()
         history_id = history.id
 
-    # 4. INSTANT PAGE LOAD
+    # 4. INSTANT PAGE LOAD (With the polling status tweak)
     return render(request, 'knowledge/search_results.html', {
         'query': query,
         'answer': ai_answer,
         'confidence': confidence,
         'status': status,
         'history_id': history_id,
+        'is_queued': True if not cached_history else False, # Tells frontend to start polling if new
         'articles': found_articles 
     })
 
