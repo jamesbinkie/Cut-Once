@@ -8,7 +8,7 @@
             <div class="ai-answer-card p-4 bg-light border rounded mb-4">
                 <h5>AI Summary</h5>
                 <hr>
-                <div class="ai-content">
+                <div class="ai-content" id="ai-answer-box">
                     {{ answer|linebreaks }}
                 </div>
             </div>
@@ -55,6 +55,62 @@
 </div>
 
 <script>
+/**
+ * 1. LIVE POLLING & TYPEWRITER LOGIC
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const answerBox = document.getElementById('ai-answer-box');
+    const historyId = "{{ history_id }}";
+    
+    // Check if the answer is currently in the queue
+    // We check the variable OR if the text contains our "Generating" placeholder
+    if ("{{ is_queued }}" === "True" || answerBox.innerText.includes("Generating")) {
+        pollForAnswer();
+    }
+
+    function pollForAnswer() {
+        // Matches the check_ai_status view endpoint
+        fetch(`/api/check-status/${historyId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_queued === false && data.answer !== "") {
+                    // Chef is finished! Type out the answer.
+                    typeWriter(data.answer, answerBox);
+                } else {
+                    // Not ready yet, check again in 3 seconds
+                    setTimeout(pollForAnswer, 3000);
+                }
+            })
+            .catch(err => console.error("Polling error:", err));
+    }
+
+    function typeWriter(text, element) {
+        element.innerHTML = ""; // Clear the "Generating..." placeholder
+        let i = 0;
+        const speed = 20; // Milliseconds per character
+
+        function type() {
+            if (i < text.length) {
+                // Convert newlines to HTML breaks for proper rendering
+                if (text.charAt(i) === "\n") {
+                    element.innerHTML += "<br>";
+                } else {
+                    element.innerHTML += text.charAt(i);
+                }
+                i++;
+                setTimeout(type, speed);
+                
+                // Keep the user focused on the text as it grows
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        }
+        type();
+    }
+});
+
+/**
+ * 2. FEEDBACK LOGIC
+ */
 function sendFeedback(value) {
     const formData = new FormData();
     formData.append('feedback', value);
@@ -81,5 +137,11 @@ function sendFeedback(value) {
     .bg-amber { background-color: #ffc107 !important; }
     .border-red { border-color: #dc3545 !important; }
     .bg-red { background-color: #dc3545 !important; }
+
+    /* Typewriter spacing */
+    .ai-content {
+        line-height: 1.6;
+        min-height: 100px;
+    }
 </style>
 {% endblock %}
