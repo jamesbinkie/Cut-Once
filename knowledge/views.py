@@ -78,12 +78,12 @@ def ai_search_view(request):
     })
 
 def article_detail(request, slug):
-    """ Restored original function """
+    """ View for individual article pages """
     article = get_object_or_404(Article, slug=slug)
     return render(request, 'knowledge/article_detail.html', {'article': article})
 
 def submit_feedback(request, history_id):
-    """ Restored original function """
+    """ Handles user feedback (Great/Meh/Nope) via AJAX """
     history = get_object_or_404(SearchHistory, id=history_id)
     if request.method == 'POST':
         feedback_value = request.POST.get('feedback')
@@ -93,3 +93,11 @@ def submit_feedback(request, history_id):
         history.save()
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
+
+def check_ai_status(request, history_id):
+    """ Allows the frontend to check if the background worker is done """
+    history = get_object_or_404(SearchHistory, id=history_id)
+    return JsonResponse({
+        'is_queued': history.is_queued,
+        'answer': history.ai_response if not history.is_queued else ""
+    })
