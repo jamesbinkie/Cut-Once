@@ -68,7 +68,7 @@ class ArticleAdmin(admin.ModelAdmin):
         js = ('django_ckeditor_5/dist/bundle.js',)
     
     def review_status(self, obj):
-        if obj.needs_review:
+        if hasattr(obj, 'needs_review') and obj.needs_review:
             return format_html('<span style="color: red; font-weight: bold;">{}</span>', '⚠️ NEEDS REVIEW')
         return format_html('<span style="color: green; font-weight: bold;">{}</span>', '✅ CURRENT')
 
@@ -79,14 +79,40 @@ class ArticleAdmin(admin.ModelAdmin):
         initial['owner'] = request.user
         return initial
 
+
+# --- 3. SEARCH HISTORY ADMIN ---
 @admin.register(SearchHistory)
 class SearchHistoryAdmin(admin.ModelAdmin):
-    # This creates your "Knowledge Gap" dashboard
-    list_display = ('query', 'confidence_score', 'user_feedback', 'needs_documentation', 'created_at')
-    list_filter = ('needs_documentation', 'user_feedback', 'confidence_score')
-    search_fields = ('query',)
-    readonly_fields = ('query', 'ai_response', 'confidence_score', 'created_at')
+    # What columns show up on the main list page
+    list_display = ('query', 'feedback_status', 'is_queued', 'created_at')
+    
+    # Adds a filter box on the right side so you can click "Show only bad feedback"
+    list_filter = ('user_feedback', 'is_queued', 'needs_documentation')
+    
+    search_fields = ('query', 'ai_response')
+    
+    # Protect the AI's data from being accidentally edited by an admin
+    readonly_fields = ('query', 'ai_response', 'confidence_score', 'created_at', 'source_articles')
+    
+    # Organize the page nicely
+    fieldsets = (
+        ('Search Details', {
+            'fields': ('query', 'ai_response', 'source_articles', 'confidence_score', 'created_at')
+        }),
+        ('Queue Status', {
+            'fields': ('is_queued',)
+        }),
+        ('Human Review', {
+            'fields': ('user_feedback', 'needs_documentation', 'admin_review_notes')
+        }),
+    )
 
-    def get_queryset(self, request):
-        """Highlight queries that need articles written."""
-        return super().get_queryset(request).order_by('-needs_documentation', '-created_at')
+    def feedback_status(self, obj):
+        """ Makes the admin dashboard look pretty with icons """
+        if obj.user_feedback == 1:
+            return format_html('<span style="color: green;">✅ Great</span>')
+        elif obj.user_feedback in [2, 3]:
+            return format_html('<span style="color: red; font-weight:bold;">⚠️ Review Needed</span>')
+        return "Pending"
+    
+    feedback_status.short_description = "User Feedback"
