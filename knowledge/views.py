@@ -1,7 +1,5 @@
-import requests
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-# Import the Vector model directly for searching
 from vectordb.models import Vector 
 from .models import Article, SearchHistory
 
@@ -10,83 +8,74 @@ def ai_search_view(request):
     if not query:
         return render(request, 'knowledge/search.html')
 
-    # 1. RETRIEVAL: Use the Vector model manager to search
+    # 1. RETRIEVAL: Instant Vector Search
     search_results = Vector.objects.search(query, k=3)
     
-    context_list = []
     total_score = 0
     found_articles = []
+    article_objects = [] # We need the actual database objects for the queue
     
     if search_results:
         for res in search_results:
-            # FIX: The vector DB stores our model data inside a 'metadata' dictionary, not 'object'
             title = res.metadata.get('title', 'Unknown Title')
-            content = res.metadata.get('content', '')
             
-            context_list.append(f"Title: {title}\nContent: {content}")
-            
-            # Safely add the score (defaulting to 0 if missing)
+            # Save score and metadata for the frontend template
             total_score += getattr(res, 'score', 0)
-            
-            # Add the metadata dictionary to our list so the HTML template can read the slug and title
             found_articles.append(res.metadata)
+            
+            # Grab the actual Article objects from the database to link to our Cache
+            slug = res.metadata.get('slug')
+            if slug:
+                try:
+                    article_objects.append(Article.objects.get(slug=slug))
+                except Article.DoesNotExist:
+                    pass
 
-    context_text = "\n---\n".join(context_list)
-    
-    # 2. CONFIDENCE CALCULATION
     avg_score = (total_score / 3) if search_results else 0
     confidence = min(100, int(avg_score * 100))
 
-# 3. GENERATION: Request a summary from Local Ollama
-    try:
-        response = requests.post('http://localhost:11434/api/generate', json={
-            "model": "llama3.2:1b",
-            "prompt": f"Use ONLY this info: {context_text}\n\nQuestion: {query}",
-            "stream": False
-        }, timeout=120)
-        
-        # NEW: Force it to trigger the 'except' block if Ollama returns a 500 or 404 error
-        response.raise_for_status() 
-        
-        # Extract the response safely
-        ai_answer = response.json().get('response')
-        
-        # NEW: Catch if Ollama returned a 200 OK but the answer was completely blank
-        if not ai_answer:
-            ai_answer = "The AI returned an empty response. It might be struggling to process this request."
+    # 2. CHECK THE CACHE (Has this been asked and rated 'Great'?)
+    # We do a loose case-insensitive search for the exact query
+    cached_history = SearchHistory.objects.filter(
+        query__iexact=query,
+        user_feedback=1, # 1 = Great!
+        is_queued=False
+    ).first()
 
-    except Exception as e:
-        print(f"Ollama Error: {e}") # This will print the actual error to your terminal for debugging
-        ai_answer = "Internal AI is currently offline or encountered an error. Please ensure Ollama is running properly."
+    if cached_history:
+        # CACHE HIT! Serve the saved answer instantly.
+        ai_answer = cached_history.ai_response
+        status = cached_history.rag_status()
+        history_id = cached_history.id
+        
+    else:
+        # 3. NO CACHE / NEW QUESTION: Send it to the background queue!
+        ai_answer = "⏳ This is a new question! Our AI is currently reading the documents and generating a summary in the background. The answer will be cached for future searches shortly."
 
-    # 4. LOGGING: Track search history and knowledge gaps
-    # Because we ensured ai_answer is ALWAYS a string now, the database won't crash!
-    history = SearchHistory.objects.create(
-        query=query,
-        ai_response=ai_answer,
-        confidence_score=confidence,
-        needs_documentation=True if confidence < 50 else False
-    )
+        history = SearchHistory.objects.create(
+            query=query,
+            ai_response=ai_answer,
+            confidence_score=confidence,
+            is_queued=True,  # <-- This tells your worker script to wake up!
+            needs_documentation=True if confidence < 50 else False
+        )
+        
+        # Link the source articles so the worker knows what to read
+        for article in article_objects:
+            history.source_articles.add(article)
+
+        status = history.rag_status()
+        history_id = history.id
+
+    # 4. INSTANT PAGE LOAD
+    # Cloudflare will never time out because this takes milliseconds!
     return render(request, 'knowledge/search_results.html', {
         'query': query,
         'answer': ai_answer,
         'confidence': confidence,
-        'status': history.rag_status(),
-        'history_id': history.id,
-        'articles': found_articles  # <-- Now passing the valid metadata dictionaries
+        'status': status,
+        'history_id': history_id,
+        'articles': found_articles 
     })
 
-def article_detail(request, slug):
-    article = get_object_or_404(Article, slug=slug)
-    return render(request, 'knowledge/article_detail.html', {'article': article})
-
-def submit_feedback(request, history_id):
-    history = get_object_or_404(SearchHistory, id=history_id)
-    if request.method == 'POST':
-        feedback_value = request.POST.get('feedback')
-        history.user_feedback = int(feedback_value)
-        if history.user_feedback == 3: # 'Nope'
-            history.needs_documentation = True
-        history.save()
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
+# ... keep your existing article_detail and submit_feedback views below ...
