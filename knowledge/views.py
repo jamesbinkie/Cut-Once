@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
+# Import the Vector model directly for searching
 from vectordb.models import Vector 
 from .models import Article, SearchHistory
 
@@ -13,7 +14,7 @@ def ai_search_view(request):
     
     total_score = 0
     found_articles = []
-    article_objects = [] # We need the actual database objects for the queue
+    article_objects = [] # Actual database objects to link to our Cache
     
     if search_results:
         for res in search_results:
@@ -35,7 +36,6 @@ def ai_search_view(request):
     confidence = min(100, int(avg_score * 100))
 
     # 2. CHECK THE CACHE (Has this been asked and rated 'Great'?)
-    # We do a loose case-insensitive search for the exact query
     cached_history = SearchHistory.objects.filter(
         query__iexact=query,
         user_feedback=1, # 1 = Great!
@@ -56,7 +56,7 @@ def ai_search_view(request):
             query=query,
             ai_response=ai_answer,
             confidence_score=confidence,
-            is_queued=True,  # <-- This tells your worker script to wake up!
+            is_queued=True,  # Tells your worker script to wake up!
             needs_documentation=True if confidence < 50 else False
         )
         
@@ -68,7 +68,6 @@ def ai_search_view(request):
         history_id = history.id
 
     # 4. INSTANT PAGE LOAD
-    # Cloudflare will never time out because this takes milliseconds!
     return render(request, 'knowledge/search_results.html', {
         'query': query,
         'answer': ai_answer,
@@ -78,4 +77,19 @@ def ai_search_view(request):
         'articles': found_articles 
     })
 
-# ... keep your existing article_detail and submit_feedback views below ...
+def article_detail(request, slug):
+    """ Restored original function """
+    article = get_object_or_404(Article, slug=slug)
+    return render(request, 'knowledge/article_detail.html', {'article': article})
+
+def submit_feedback(request, history_id):
+    """ Restored original function """
+    history = get_object_or_404(SearchHistory, id=history_id)
+    if request.method == 'POST':
+        feedback_value = request.POST.get('feedback')
+        history.user_feedback = int(feedback_value)
+        if history.user_feedback == 3: # 'Nope'
+            history.needs_documentation = True
+        history.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
