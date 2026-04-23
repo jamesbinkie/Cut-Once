@@ -1,47 +1,41 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-8">
             <h2>Search Results: "{{ query }}"</h2>
-            <div class="ai-answer-card p-4 bg-light border rounded mb-4">
-                <h5>AI Summary</h5>
+            <div class="ai-answer-card p-4 bg-white shadow-sm border rounded mb-4">
+                <h5 class="text-primary">AI Summary</h5>
                 <hr>
                 <div class="ai-content" id="ai-answer-box">
-                    {{ answer|linebreaks }}
+                    {% if is_queued %}
+                        <em class="pulse-text">{{ answer }}</em>
+                    {% else %}
+                        {{ answer|linebreaks }}
+                    {% endif %}
                 </div>
             </div>
 
             <div class="mt-4">
-                <h4>Source Documents</h4>
-                {% if articles %}
-                    <ul class="list-group">
-                        {% for article in articles %}
-                            <li class="list-group-item">
-                                <a href="{% url 'article_detail' article.slug %}">{{ article.title }}</a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted">No specific documents found for this query.</p>
-                {% endif %}
+                <h4>Related Documentation</h4>
+                <ul class="list-group">
+                    {% for article in articles %}
+                        <li class="list-group-item"><a href="{% url 'article_detail' article.slug %}">{{ article.title }}</a></li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
         <div class="col-md-4">
             <div class="card mb-4 border-{{ status }} border-3">
-                <div class="card-header bg-{{ status }} text-white">
-                    <strong>Certainty Rating</strong>
-                </div>
+                <div class="card-header bg-{{ status }} text-white font-weight-bold">Certainty Rating</div>
                 <div class="card-body text-center">
                     <h1 class="display-4">{{ confidence }}%</h1>
-                    <p class="text-muted">Based on internal documentation matches.</p>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header">Was this helpful?</div>
+                <div class="card-header">Was this summary accurate?</div>
                 <div class="card-body text-center" id="feedback-area">
                     <div class="btn-group w-100">
                         <button onclick="sendFeedback(1)" class="btn btn-outline-success">Great</button>
@@ -55,93 +49,54 @@
 </div>
 
 <script>
-/**
- * 1. LIVE POLLING & TYPEWRITER LOGIC
- */
 document.addEventListener('DOMContentLoaded', function() {
-    const answerBox = document.getElementById('ai-answer-box');
-    const historyId = "{{ history_id }}";
+    const box = document.getElementById('ai-answer-box');
+    const hId = "{{ history_id }}";
     
-    // Check if the answer is currently in the queue
-    // We check the variable OR if the text contains our "Generating" placeholder
-    if ("{{ is_queued }}" === "True" || answerBox.innerText.includes("Generating")) {
-        pollForAnswer();
+    if ("{{ is_queued }}" === "True") {
+        let attempts = 0;
+        const poll = setInterval(() => {
+            fetch(`/api/check-status/${hId}/`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.is_queued) {
+                        clearInterval(poll);
+                        typeOut(data.answer);
+                    }
+                });
+            attempts++;
+            if (attempts > 200) clearInterval(poll); // Stop after 10 mins
+        }, 4000);
     }
 
-    function pollForAnswer() {
-        // Matches the check_ai_status view endpoint
-        fetch(`/api/check-status/${historyId}/`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.is_queued === false && data.answer !== "") {
-                    // Chef is finished! Type out the answer.
-                    typeWriter(data.answer, answerBox);
-                } else {
-                    // Not ready yet, check again in 3 seconds
-                    setTimeout(pollForAnswer, 3000);
-                }
-            })
-            .catch(err => console.error("Polling error:", err));
-    }
-
-    function typeWriter(text, element) {
-        element.innerHTML = ""; // Clear the "Generating..." placeholder
+    function typeOut(text) {
+        box.innerHTML = "";
         let i = 0;
-        const speed = 20; // Milliseconds per character
-
-        function type() {
+        function step() {
             if (i < text.length) {
-                // Convert newlines to HTML breaks for proper rendering
-                if (text.charAt(i) === "\n") {
-                    element.innerHTML += "<br>";
-                } else {
-                    element.innerHTML += text.charAt(i);
-                }
+                box.innerHTML += text.charAt(i) === "\n" ? "<br>" : text.charAt(i);
                 i++;
-                setTimeout(type, speed);
-                
-                // Keep the user focused on the text as it grows
+                setTimeout(step, 20);
                 window.scrollTo(0, document.body.scrollHeight);
             }
         }
-        type();
+        step();
     }
 });
 
-/**
- * 2. FEEDBACK LOGIC
- */
-function sendFeedback(value) {
-    const formData = new FormData();
-    formData.append('feedback', value);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-    fetch("{% url 'submit_feedback' history_id %}", {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.status === 'success') {
-            document.getElementById('feedback-area').innerHTML = '<div class="alert alert-success">Thanks for the feedback!</div>';
-        }
-    });
+function sendFeedback(v) {
+    const f = new FormData(); f.append('feedback', v); f.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    fetch("{% url 'submit_feedback' history_id %}", {method: 'POST', body: f})
+    .then(() => document.getElementById('feedback-area').innerHTML = "Thanks!");
 }
 </script>
 
 <style>
-    /* Status Colors for the Certainty Box */
-    .border-green { border-color: #28a745 !important; }
+    .pulse-text { animation: pulse 1.5s infinite; color: #888; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     .bg-green { background-color: #28a745 !important; }
-    .border-amber { border-color: #ffc107 !important; }
     .bg-amber { background-color: #ffc107 !important; }
-    .border-red { border-color: #dc3545 !important; }
     .bg-red { background-color: #dc3545 !important; }
-
-    /* Typewriter spacing */
-    .ai-content {
-        line-height: 1.6;
-        min-height: 100px;
-    }
+    .border-green { border-color: #28a745 !important; }
 </style>
 {% endblock %}
