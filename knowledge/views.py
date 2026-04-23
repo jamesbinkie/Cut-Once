@@ -1,104 +1,54 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-# Import the Vector model directly for searching
 from vectordb.models import Vector 
 from .models import Article, SearchHistory
 
 def ai_search_view(request):
     query = request.GET.get('q', '')
-    if not query:
-        return render(request, 'knowledge/search.html')
+    if not query: return render(request, 'knowledge/search.html')
 
-    # 1. RETRIEVAL: Instant Vector Search
-    search_results = Vector.objects.search(query, k=3)
+    # 1. Search the Cache first (Case-insensitive)
+    cache = SearchHistory.objects.filter(query__iexact=query, user_feedback=1, is_queued=False).first()
+    if cache:
+        return render(request, 'knowledge/search_results.html', {
+            'query': query, 'answer': cache.ai_response, 'confidence': cache.confidence_score,
+            'status': cache.rag_status(), 'history_id': cache.id, 'is_queued': False
+        })
+
+    # 2. No cache? Perform Vector Search and Queue it
+    results = Vector.objects.search(query, k=3)
+    found_articles = [res.metadata for res in results]
     
-    total_score = 0
-    found_articles = []
-    article_objects = [] # Actual database objects to link to our Cache
+    # Create the record for the worker
+    history = SearchHistory.objects.create(
+        query=query, is_queued=True,
+        ai_response="⏳ Generating AI summary...",
+        confidence_score=int(sum(getattr(r, 'score', 0) for r in results) / 3 * 100) if results else 0
+    )
     
-    if search_results:
-        for res in search_results:
-            title = res.metadata.get('title', 'Unknown Title')
-            
-            # Save score and metadata for the frontend template
-            total_score += getattr(res, 'score', 0)
-            found_articles.append(res.metadata)
-            
-            # Grab the actual Article objects from the database to link to our Cache
-            slug = res.metadata.get('slug')
-            if slug:
-                try:
-                    article_objects.append(Article.objects.get(slug=slug))
-                except Article.DoesNotExist:
-                    pass
+    # Link documents so the worker knows what to read
+    for res in results:
+        art = Article.objects.filter(slug=res.metadata.get('slug')).first()
+        if art: history.source_articles.add(art)
 
-    avg_score = (total_score / 3) if search_results else 0
-    confidence = min(100, int(avg_score * 100))
-
-    # 2. CHECK THE CACHE (Has this been asked and rated 'Great'?)
-    cached_history = SearchHistory.objects.filter(
-        query__iexact=query,
-        user_feedback=1, # 1 = Great!
-        is_queued=False
-    ).first()
-
-    if cached_history:
-        # CACHE HIT! Serve the saved answer instantly.
-        ai_answer = cached_history.ai_response
-        status = cached_history.rag_status()
-        history_id = cached_history.id
-        
-    else:
-        # 3. NO CACHE / NEW QUESTION: Send it to the background queue!
-        ai_answer = "⏳ This is a new question! Our AI is currently reading the documents and generating a summary in the background. The answer will be cached for future searches shortly."
-
-        history = SearchHistory.objects.create(
-            query=query,
-            ai_response=ai_answer,
-            confidence_score=confidence,
-            is_queued=True,  # Tells your worker script to wake up!
-            needs_documentation=True if confidence < 50 else False
-        )
-        
-        # Link the source articles so the worker knows what to read
-        for article in article_objects:
-            history.source_articles.add(article)
-
-        status = history.rag_status()
-        history_id = history.id
-
-    # 4. INSTANT PAGE LOAD (With the polling status tweak)
     return render(request, 'knowledge/search_results.html', {
-        'query': query,
-        'answer': ai_answer,
-        'confidence': confidence,
-        'status': status,
-        'history_id': history_id,
-        'is_queued': True if not cached_history else False, # Tells frontend to start polling if new
-        'articles': found_articles 
+        'query': query, 'answer': history.ai_response, 'confidence': history.confidence_score,
+        'status': history.rag_status(), 'history_id': history.id, 'is_queued': True, 'articles': found_articles
     })
 
+def check_ai_status(request, history_id):
+    h = get_object_or_404(SearchHistory, id=history_id)
+    return JsonResponse({'is_queued': h.is_queued, 'answer': h.ai_response})
+
 def article_detail(request, slug):
-    """ View for individual article pages """
     article = get_object_or_404(Article, slug=slug)
     return render(request, 'knowledge/article_detail.html', {'article': article})
 
 def submit_feedback(request, history_id):
-    """ Handles user feedback (Great/Meh/Nope) via AJAX """
-    history = get_object_or_404(SearchHistory, id=history_id)
+    h = get_object_or_404(SearchHistory, id=history_id)
     if request.method == 'POST':
-        feedback_value = request.POST.get('feedback')
-        history.user_feedback = int(feedback_value)
-        if history.user_feedback == 3: # 'Nope'
-            history.needs_documentation = True
-        history.save()
+        h.user_feedback = int(request.POST.get('feedback'))
+        if h.user_feedback == 3: h.needs_documentation = True
+        h.save()
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
-
-def check_ai_status(request, history_id):
-    """ Allows the frontend to check if the background worker is done """
-    history = get_object_or_404(SearchHistory, id=history_id)
-    return JsonResponse({
-        'is_queued': history.is_queued,
-        'answer': history.ai_response if not history.is_queued else ""
-    })
