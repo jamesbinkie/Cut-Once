@@ -12,7 +12,6 @@ class Article(models.Model):
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     last_reviewed = models.DateField(default=timezone.now)
 
-    # Required for AI Search: Tells the indexer what to read
     def get_vectordb_text(self):
         return f"Title: {self.title}\nContent: {self.content}"
 
@@ -22,39 +21,24 @@ class Article(models.Model):
 class SearchHistory(models.Model):
     query = models.CharField(max_length=500)
     ai_response = models.TextField()
-    
-    # NEW: Link the answer to the exact documents it used
     source_articles = models.ManyToManyField(Article, blank=True)
+    is_queued = models.BooleanField(default=False, help_text="True if waiting for background generation")
+    confidence_score = models.IntegerField(default=0)
     
-    # NEW: The Background Queue Flag
-    is_queued = models.BooleanField(default=False, help_text="True if waiting for background AI generation")
-    
-    # Certainty Metrics
-    confidence_score = models.IntegerField(default=0) # 0-100%
-    
-    # Feedback Loop: 1=Great, 2=Meh, 3=Nope
     FEEDBACK_CHOICES = [(1, 'Great'), (2, 'Meh'), (3, 'Nope')]
     user_feedback = models.IntegerField(choices=FEEDBACK_CHOICES, null=True, blank=True)
     
-    # Knowledge Gap Flag & Admin Review Notes
     needs_documentation = models.BooleanField(default=False)
-    admin_review_notes = models.TextField(blank=True, help_text="Notes from staff reviewing bad AI answers")
-    
+    admin_review_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def rag_status(self):
-        """Returns the color code for the certainty box."""
         if self.confidence_score >= 80: return 'green'
         if self.confidence_score >= 50: return 'amber'
         return 'red'
 
-# NEW: The "Auto-Queue" Trigger
 @receiver(post_save, sender=Article)
 def queue_related_searches(sender, instance, **kwargs):
-    """
-    Any time an Article is edited and saved, this automatically finds 
-    ALL cached AI answers that used it, and drops them back into the queue 
-    to be regenerated so they stay accurate.
-    """
+    """ If an article is updated, mark all AI answers that used it as 'stale' and re-queue them """
     related_searches = instance.searchhistory_set.all()
     related_searches.update(is_queued=True)
