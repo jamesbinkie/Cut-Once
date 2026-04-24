@@ -80,39 +80,35 @@ class ArticleAdmin(admin.ModelAdmin):
         return initial
 
 
-# --- 3. SEARCH HISTORY ADMIN ---
+# --- 3. SEARCH HISTORY ADMIN (Improved Tracking) ---
 @admin.register(SearchHistory)
 class SearchHistoryAdmin(admin.ModelAdmin):
-    # What columns show up on the main list page
-    list_display = ('query', 'feedback_status', 'is_queued', 'created_at')
+    # What you see in the main list
+    list_display = ('query', 'status_tag', 'user_feedback', 'created_at')
     
-    # Adds a filter box on the right side so you can click "Show only bad feedback"
-    list_filter = ('user_feedback', 'is_queued', 'needs_documentation')
+    # Adds filters on the right side for easy tracking
+    list_filter = ('is_queued', 'user_feedback', 'needs_documentation')
     
     search_fields = ('query', 'ai_response')
     
-    # Protect the AI's data from being accidentally edited by an admin
-    readonly_fields = ('query', 'ai_response', 'confidence_score', 'created_at', 'source_articles')
+    # Organize the detailed view
+    readonly_fields = ('created_at', 'confidence_score')
     
-    # Organize the page nicely
     fieldsets = (
-        ('Search Details', {
-            'fields': ('query', 'ai_response', 'source_articles', 'confidence_score', 'created_at')
+        ('Search Request', {
+            'fields': ('query', 'created_at')
         }),
-        ('Queue Status', {
-            'fields': ('is_queued',)
+        ('AI Progress', {
+            'fields': ('is_queued', 'ai_response', 'confidence_score')
         }),
         ('Human Review', {
             'fields': ('user_feedback', 'needs_documentation', 'admin_review_notes')
         }),
     )
 
-    def feedback_status(self, obj):
-        """ Makes the admin dashboard look pretty with icons """
-        if obj.user_feedback == 1:
-            return format_html('<span style="color: green;">✅ Great</span>')
-        elif obj.user_feedback in [2, 3]:
-            return format_html('<span style="color: red; font-weight:bold;">⚠️ Review Needed</span>')
-        return "Pending"
-    
-    feedback_status.short_description = "User Feedback"
+    def status_tag(self, obj):
+        """ Visual indicator of AI progress in the dashboard list """
+        if obj.is_queued:
+            return format_html('<span style="color: orange;">⏳ Thinking...</span>')
+        # Check if response exists and isn't just the "Generating" placeholder
+        if obj.ai_response and "Generating" not in obj
