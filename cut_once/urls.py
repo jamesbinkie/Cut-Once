@@ -17,7 +17,8 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')), 
     path('ckeditor5/', include('django_ckeditor_5.urls')),
     path('api/check-status/<int:history_id>/', views.check_ai_status, name='check_ai_status'),
-    
+    # Add this right beneath the feedback endpoint:
+    path('status/<int:history_id>/', views.check_status, name='check_status'),
     # Feedback endpoint for the AI results
     path('feedback/<int:history_id>/', views.submit_feedback, name='submit_feedback'),
 ]
