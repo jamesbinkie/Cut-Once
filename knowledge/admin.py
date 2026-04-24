@@ -108,7 +108,17 @@ class SearchHistoryAdmin(admin.ModelAdmin):
 
     def status_tag(self, obj):
         """ Visual indicator of AI progress in the dashboard list """
-        if obj.is_queued:
-            return format_html('<span style="color: orange;">⏳ Thinking...</span>')
-        # Check if response exists and isn't just the "Generating" placeholder
-        if obj.ai_response and "Generating" not in obj
+        if getattr(obj, 'is_queued', False):
+            return format_html('<span style="color: orange; font-weight: bold;">⏳ Thinking...</span>')
+        
+        # THE FIX: Properly finished the checking logic with the missing colon
+        if obj.ai_response and "Generating" not in obj.ai_response:
+            return format_html('<span style="color: green; font-weight: bold;">✅ Ready</span>')
+            
+        return format_html('<span style="color: gray;">Unknown</span>')
+
+    status_tag.short_description = "Status"
+
+    def get_queryset(self, request):
+        """Highlight queries that need articles written."""
+        return super().get_queryset(request).order_by('-needs_documentation', '-created_at')
