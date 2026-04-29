@@ -34,13 +34,11 @@ class CustomUserAdmin(UserAdmin):
         Fixes the ValueError: Checks form data to see if a Group was 
         selected, then sets Staff status automatically.
         """
-        # Look at the selected groups in the form before the user is saved
         selected_groups = form.cleaned_data.get('groups')
         
         if selected_groups and selected_groups.exists():
             obj.is_staff = True
         else:
-            # If no groups are selected, they are a General user (no backend)
             obj.is_staff = False
             
         super().save_model(request, obj, form, change)
@@ -106,10 +104,10 @@ class SearchHistoryAdmin(admin.ModelAdmin):
         }),
     )
 
-  def status_tag(self, obj):
+    def status_tag(self, obj):
         """ Visual indicator of AI progress in the dashboard list """
         if getattr(obj, 'is_queued', False):
-            # FIX: We now use '{}' as a placeholder and pass the text as an argument
+            # Using '{}' placeholders as required by Django 6.0+ format_html
             return format_html('<span style="color: orange; font-weight: bold;">{}</span>', '⏳ Thinking...')
         
         if obj.ai_response and "Generating" not in obj.ai_response:
