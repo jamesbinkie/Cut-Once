@@ -56,6 +56,13 @@
         
         /* Apply brand color to selection/highlights */
         ::selection { background-color: #009FE3; color: white; }
+
+        /* AI Status Pulse Animation */
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 antialiased transition-colors duration-300">
@@ -98,6 +105,11 @@
         {% block content %}{% endblock %}
     </main>
 
+    <div id="ai-status-container" class="fixed bottom-4 right-4 z-50 bg-white dark:bg-zinc-800 px-3 py-1.5 rounded-full shadow-md border border-gray-200 dark:border-zinc-700 flex items-center space-x-2 text-xs">
+        <span id="ai-status-dot" class="w-2.5 h-2.5 rounded-full bg-gray-400 block"></span>
+        <span id="ai-status-text" class="text-gray-500 font-semibold tracking-wide uppercase">Checking AI...</span>
+    </div>
+
     <script>
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-toggle-icon');
@@ -110,7 +122,6 @@
             }
         }
         
-        // Initial set: Forget what the computer wants, only do what the user clicked
         if (localStorage.getItem('color-theme') === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
@@ -128,6 +139,39 @@
                 localStorage.setItem('color-theme', 'dark');
             }
             updateUI();
+        });
+
+        // AI Status Pulse Script
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusDot = document.getElementById('ai-status-dot');
+            const statusText = document.getElementById('ai-status-text');
+
+            function checkAIPulse() {
+                fetch('/api/ai-pulse/')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.online) {
+                            statusDot.style.backgroundColor = '#28a745'; 
+                            statusDot.style.animation = 'pulse-green 2s infinite';
+                            statusText.innerText = 'AI ONLINE';
+                            statusText.className = 'text-green-600 font-semibold tracking-wide uppercase';
+                        } else {
+                            statusDot.style.backgroundColor = '#dc3545';
+                            statusDot.style.animation = 'none';
+                            statusText.innerText = 'AI OFFLINE';
+                            statusText.className = 'text-red-500 font-semibold tracking-wide uppercase';
+                        }
+                    })
+                    .catch(error => {
+                        statusDot.style.backgroundColor = '#dc3545';
+                        statusDot.style.animation = 'none';
+                        statusText.innerText = 'AI OFFLINE';
+                        statusText.className = 'text-red-500 font-semibold tracking-wide uppercase';
+                    });
+            }
+
+            checkAIPulse();
+            setInterval(checkAIPulse, 15000); 
         });
     </script>
 </body>
