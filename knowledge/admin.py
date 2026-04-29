@@ -106,16 +106,16 @@ class SearchHistoryAdmin(admin.ModelAdmin):
         }),
     )
 
-    def status_tag(self, obj):
+  def status_tag(self, obj):
         """ Visual indicator of AI progress in the dashboard list """
         if getattr(obj, 'is_queued', False):
-            return format_html('<span style="color: orange; font-weight: bold;">⏳ Thinking...</span>')
+            # FIX: We now use '{}' as a placeholder and pass the text as an argument
+            return format_html('<span style="color: orange; font-weight: bold;">{}</span>', '⏳ Thinking...')
         
-        # THE FIX: Properly finished the checking logic with the missing colon
         if obj.ai_response and "Generating" not in obj.ai_response:
-            return format_html('<span style="color: green; font-weight: bold;">✅ Ready</span>')
+            return format_html('<span style="color: green; font-weight: bold;">{}</span>', '✅ Ready')
             
-        return format_html('<span style="color: gray;">Unknown</span>')
+        return format_html('<span style="color: gray;">{}</span>', 'Unknown')
 
     status_tag.short_description = "Status"
 
